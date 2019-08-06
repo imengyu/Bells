@@ -3,3 +3,4 @@
 /data/
 /native/build/Release/
 /node_modules/
+/native/build/.vs/
