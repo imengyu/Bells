@@ -1,0 +1,5 @@
+/.vscode/
+/build/
+/data/
+/native/build/Release/
+/node_modules/

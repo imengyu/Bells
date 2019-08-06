@@ -1,0 +1,65 @@
+@import "scroll";
+
+.el-dialog__wrapper{
+  @include pc-fix-scrollbar-white();
+}
+.el-table__body-wrapper{
+  @include pc-fix-scrollbar-white();
+}
+
+.el-form-span {
+  display: inline-block;
+  color: rgb(143, 143, 143);
+  margin-top: 10px;
+  line-height: 23px !important;
+}
+
+.el-dialog {
+  border-radius: 10px;
+}
+
+.v-modal {
+  position: fixed;
+  left: 15px;
+  top: 20px;
+  bottom: 20px;
+  right: 15px;
+  border-radius: 20px;
+  opacity: .5;
+  background: #000;
+  width: auto;
+  height: auto;
+}
+.el-dialog__wrapper {
+  position: fixed;
+  left: 15px;
+  top: 20px;
+  bottom: 20px;
+  right: 15px;
+  border-radius: 20px;
+  overflow: auto;
+  margin: 0;
+}
+
+.el-message-box {
+  border-radius: 10px;
+}
+.el-popper{
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.demo-table-expand {
+
+  font-size: 0;
+
+  label {
+    width: 90px;
+    color: #99a9bf;
+  }
+  .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 50%;
+  }
+}
