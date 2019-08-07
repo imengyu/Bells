@@ -1,3 +1,11 @@
+if(typeof require == 'undefined') {
+  window.onload = function(){
+    document.getElementById('global-error-info').setAttribute('style','');
+    document.getElementById('global-error-info-text').innerText = '当前应用不能在浏览器中运行!';
+  }
+  throw Error('当前应用不能在浏览器中运行!');
+}
+
 const electron = require("electron");
 const ipc = electron.ipcRenderer;
 const remote = electron.remote;
@@ -7,7 +15,7 @@ const MenuItem = remote.MenuItem;
 var Datastore = require('nedb'), db = new Datastore({ filename: './data/data.db', autoload: true });
 var main = null;
 var mainAppRunning = false;
-var bellsWin32 = require('../native/build/Release/bells.node')
+var bellsWin32 = require('./lib/bells.node')
 
 function hideIntro() {
   var intro = document.getElementById('intro');
@@ -43,6 +51,36 @@ function initVue() {
         shutdownTimer: null,
         shutdownTick: 30,
         settingsActiveTab: 'general',
+        weekLabels: [
+          {
+            label: '星期日',
+            value: 0
+          },
+          {
+            label: '星期一',
+            value: 1
+          },
+          {
+            label: '星期二',
+            value: 2
+          },
+          {
+            label: '星期三',
+            value: 3
+          },
+          {
+            label: '星期四',
+            value: 4
+          },
+          {
+            label: '星期无',
+            value: 5
+          },
+          {
+            label: '星期六',
+            value: 6
+          },
+        ],
         managerPasswordAddRules: {
           new: [
             { required: true, message: '请输入新密码', trigger: 'blur' },
@@ -80,6 +118,7 @@ function initVue() {
         showSettingsDialog: false,
         showLoginHelpDialog: false,
         showLogDialog: false,
+        showFirstIntroDialog: false,
 
         currentIsAddSeason: false,
         currentIsAddTable: false,
@@ -167,6 +206,8 @@ function initVue() {
           managerPassword: '',
           lockedNote: '为了保证数据安全，软件已锁定，请联系管理员了解更多信息',
           appTitle: '校园铃声自动播放系统',
+          appFirstLoad: true,
+          appBackground: '',
           autoUpdate: true,
           autoSaveDataMaxDay: 15,
           autoLockMaxMinute: 10,
@@ -512,6 +553,7 @@ function initVue() {
         this.menuSettings.append(new MenuItem({ label: '数据导出与导入', click: () => { this.editSetings('data'); } }));
         this.menuSettings.append(new MenuItem({ label: '查看日志', click: () => { this.showLogDialog =true;this.showLog(0); } }));
         this.menuSettings.append(new MenuItem({ label: '手动保存数据', click: () => { this.saveAndReloadData(); } }));
+        this.menuSettings.append(new MenuItem({ label: 'Test1', click: () => { this.showFirstView(); } }));
 
         var powerSubMenu = new Menu();
         powerSubMenu.append(new MenuItem({ label: '关闭计算机', click: () => { this.shutdownByUser(); } }));
@@ -552,15 +594,42 @@ function initVue() {
 
       /*数据主控*/
       loadAllData() {
+        
+        //加载应用程序设置
+        db.find({ type: 'main-settings-data' }, function (err, docs) {
+          if(docs != null || docs.length != 0){
+            var json = null;
+            try{
+              json= JSON.parse(docs[0].data);
+              main.appSettings = json;
 
+              console.log('Data setting load success, last data save date : ' + docs[0].lastSaveDate);
+              main.log('程序设置数据加载成功', { modulname: '数据控制' })
+            }
+            catch(e){
+              console.log('Data setting load failed, use default settings : ' + e);
+              main.appSettings = {};
+              cloneValueForce(main.appSettings, main.appSettingsDef);
+              main.log('程序设置数据加载失败，使用默认设置', { modulname: '数据控制', level: '错误' })
+            }
+
+            //检查是否有空缺的设置
+            Object.keys(main.appSettingsDef).forEach(function(key){
+              if(typeof main.appSettings[key] == 'undefined') 
+                main.appSettings[key] = main.appSettingsDef[key];
+            });
+
+            if(main.appSettings.preventAnymouseUse && main.appSettings.managerPassword != '')
+              main.systemLocked = true;
+            main.loadSettings();
+          }
+        });
         //加载数据
         db.find({ type: 'main-data' }, function (err, docs) {
           if(docs == null || docs.length == 0){
-            main.$alert('软件无法读取数据，可能是文件丢失。', '提示', {
-              confirmButtonText: '确定',
-              type: 'warning'
-            });
-            console.log('Data failed in find main-data : ' + err);
+            if(!main.appSettings.appFirstLoad)
+              main.$message('软件无法读取数据，可能是数据文件丢失', '提示', { type: 'error', duration: 10000 });
+            console.log('Data load empty');
           }else{
             var json = null;
             try{
@@ -568,6 +637,8 @@ function initVue() {
             }
             catch(e){
               console.log('Data load success, but parse json failed : ' + e);
+
+              main.$message('软件无法读取数据，发生了异常', '提示', { type: 'error', duration: 10000 });
               main.log('播放数据加载失败，' + e, { modulname: '数据控制', level: '错误' })
               return;
             }
@@ -595,27 +666,7 @@ function initVue() {
             main.musicHistoryList = json;
           }
         });
-        //加载应用程序设置
-        db.find({ type: 'main-settings-data' }, function (err, docs) {
-          if(docs != null || docs.length != 0){
-            var json = null;
-            try{
-              json= JSON.parse(docs[0].data);
-              main.appSettings = json;
-
-              console.log('Data setting load success, last data save date : ' + docs[0].lastSaveDate);
-              main.log('程序设置数据加载成功', { modulname: '数据控制' })
-            }
-            catch(e){
-              console.log('Data setting load failed, use default settings : ' + e);
-              cloneValueForce(main.appSettings, main.appSettingsDef);
-            }
-
-            if(main.appSettings.preventAnymouseUse && main.appSettings.managerPassword != '')
-              main.systemLocked = true;
-            main.loadSettings();
-          }
-        });
+        
       },
       saveAllData(){
 
@@ -703,6 +754,10 @@ function initVue() {
         }
       },
       loadSettings() {
+        if(this.appSettings.appFirstLoad){
+          this.appSettings.appFirstLoad = false;
+          this.showFirstView();
+        }
         this.playingMusicVolume = this.appSettings.playingMusicVolume;
         this.musicPlayingListShow = this.appSettings.musicPlayingListShow;
         maxUserOutTime = this.appSettings.autoLockMaxMinute;
@@ -808,6 +863,18 @@ function initVue() {
           this.$alert('管理员密码不正确', '锁定提示', { type: 'error' });
           this.log('验证登录密码错误', { modulname: '安全控制' })
         }
+      },
+      
+      /*初始欢迎界面和引导 */
+      showFirstView(){
+        this.showFirstIntroDialog = true;
+      },
+      closeIntroDialog(){
+        this.showFirstIntroDialog = false;
+        this.runTour();
+      },
+      runTour(){
+
       },
 
       /*状态控制 */
@@ -1381,7 +1448,7 @@ function initVue() {
             newMusicItemAudio.play();
             if(newItem.callback) 
               newItem.callback('playing', newItem.currentIndex + 1, null);
-            this.log('开始播放音乐：' + newMusicItemAudio.src, { modulname: '音乐播放器' })
+            this.log('开始播放音乐：' + getFileName(newItem.musics[newItem.currentIndex]), { modulname: '音乐播放器' })
           }catch(e){
             if(newItem.callback) 
               newItem.callback('error', newItem.currentIndex + 1, e);
@@ -1527,7 +1594,8 @@ function initVue() {
           type: 'success'
         });   
       },
-      chooseMusic(arg) { ipc.send('main-open-file-dialog', arg); },
+      chooseImage(arg) { ipc.send('main-open-file-dialog-image', arg); },
+      chooseMusic(arg) { ipc.send('main-open-file-dialog-music', arg); },
       showHelpWindow(ar) { ipc.send('main-act-show-help-window', ar); },
       executeShutdown(){
         ipc.send('main-act-window-control', 'show');
@@ -1615,6 +1683,14 @@ function initVue() {
           this.doLogin();
         }
       },
+      getAppBackground(){
+        return (this.appSettings && !isNullOrEmpty(this.appSettings.appBackground))
+      },
+      getAppBackgroundPath(){
+        if(this.appSettings && !isNullOrEmpty(this.appSettings.appBackground))
+          return 'background-image: url(\'file:///' + this.appSettings.appBackground.replace(/\\/g, '/') + '\')';
+        return ''
+      },
     },
   });
 
@@ -1674,6 +1750,14 @@ function initVue() {
 
 }
 
+ipc.on('selected-image', function (event, arg, path) {
+  if(!path || path.length == 0) 
+    return;
+  if(arg.type=='chooseBackground'){
+    if(main.appSettingsBackup)
+      main.appSettingsBackup.appBackground = path[0];
+  }
+});
 ipc.on('selected-music', function (event, arg, path) {
   if(!path || path.length == 0) 
     return;

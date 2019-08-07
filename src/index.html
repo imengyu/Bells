@@ -33,10 +33,12 @@
     <!--错误区域-->
     <div class="error-area" id="global-error-info" style="display:none">
       <i class="erricon fa fa-exclamation-triangle" aria-hidden="true"></i>
-      <span class="text-secondary mb-3">程序发生了一个错误，
+      <span id="global-error-info-text" class="text-secondary mb-3">程序发生了一个错误，
         请尝试 <a href="javascript:;" onclick="location.reload(true)">重载程序</a>  或 <a href="#" onclick="alert('错误已提交！我们将尽快解决此问题。');location.reload(true)">向我们反馈错误报告</a> </span>
     </div>
     <div id="app">
+      <div class="app-background0"></div>
+      <div class="app-background" :style="getAppBackgroundPath()"> </div>
       <!--标题栏按钮-->
       <div class="window-title-bar light">
         <div class="window-controls-container">
@@ -53,8 +55,9 @@
         </div>
       </div>
       <!--锁屏界面-->
-      <div :class="'lock-area' + (systemLocked ? ' show' : '')">
-        <div class="login-area">
+      <div :class="'lock-area' + (systemLocked ? ' show' : '')" 
+        :style="getAppBackgroundPath()"> 
+        <div :class="'login-area' + (getAppBackground()?' hasBackground':'')">
           <div class="login">
             <h3>登录系统</h3>
             <div class="info-box">
@@ -65,7 +68,6 @@
               <input placeholder="请输入密码" type="password" v-model="systemLockEnterPassword" @keyup="loginInputKeyDown($event)"></input>
               <el-button class="mt-4" type="primary" @click="doLogin" round>登录系统</el-button>
             </div>
-            
           </div>
           <div class="ver-text">
             Version {{ appVesrsion }} {{ appBuildDate }} <br>
@@ -118,7 +120,7 @@
         </ul>
       </div>
       <!--时间表区域-->
-      <div class="left-area">
+      <div :class="'left-area' + (getAppBackground()?' hasBackground':'')">
         <!--时钟-->
         <div class="time-area">
           <h1>{{ currentTime }}</h1>
@@ -161,7 +163,9 @@
                     <h4>{{ getTableStatusString(timetable) }}</h4>
                   </div>
                 </li>
-                <li class="btn-add" @click="addTable()"></li>
+                <el-tooltip class="item" effect="dark" content="添加时间表" placement="top">
+                  <li class="btn-add" @click="addTable()"></li>
+                </el-tooltip>
               </ul> 
             </happy-scroll>
           </div>
@@ -172,6 +176,7 @@
         </div>
       </div>
       <!--主区域-->
+      <div :class="'main-area-background' + (getAppBackground()?' hasBackground':'')"></div>
       <div class="main-area">
         <div class="task-area" id="task_area">
           <div v-if="currentShowTable" class="btn-area">
@@ -285,8 +290,8 @@
             </el-tooltip>
           </div>
       </div>
-      <!--对话框-->
 
+      <!--对话框-->
       <!--退出对话框-->
       <el-dialog title="你是否真的要退出？" :visible.sync="showExitDialog" width="50%">
         <span>退出以后就不能自动播放铃声了！<br>除了退出，你还可以将本程序隐藏到托盘后台运行。</span>
@@ -341,7 +346,7 @@
         </span>
       </el-dialog>
       <!--编辑播放条件对话框-->
-      <el-dialog :title="currentIsAddCondition ? '添加播放条件':'编辑播放条件'" :visible.sync="showEditConditionDialog" width="50%">
+      <el-dialog :title="currentIsAddCondition ? '添加播放条件':'编辑播放条件'" :visible.sync="showEditConditionDialog" width="60%">
         <el-form v-if="currentEditConditionBackup" ref="formEditCondition" :model="currentEditConditionBackup" label-width="100px">
           <el-form-item label="条件与类型">
             <el-radio-group v-model="currentEditConditionBackup.type" size="medium">
@@ -349,14 +354,8 @@
             </el-radio-group>
             <el-divider></el-divider>
             <div v-if="currentEditConditionBackup.type=='星期'">
-              <el-select v-model="currentEditConditionBackup.week" placeholder="请选择">
-                <el-option :key="0" label="星期日" :value="0"></el-option>
-                <el-option :key="1" label="星期一" :value="1"></el-option>
-                <el-option :key="2" label="星期二" :value="2"></el-option>
-                <el-option :key="3" label="星期三" :value="3"></el-option>
-                <el-option :key="4" label="星期四" :value="4"></el-option>
-                <el-option :key="5" label="星期五" :value="5"></el-option>
-                <el-option :key="6" label="星期六" :value="6"></el-option>
+              <el-select v-model="currentEditConditionBackup.week" style="width: 100px;" placeholder="请选择">
+                <el-option v-for="item in weekLabels" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
             </div>
             <div v-else-if="currentEditConditionBackup.type=='日期'">
@@ -364,8 +363,41 @@
                 v-model="currentEditConditionBackup.datetime"
                 type="date"
                 placeholder="选择日期"
+                style="width: 140px;"
                 :format="currentEditConditionBackup.testYear ? 'yyyy-MM-dd' : 'MM-dd'">
               </el-date-picker>
+              <br/>
+              <el-tooltip class="item" effect="dark" content="是否限制年份，如果不限制年份则以月份为条件" placement="top">
+                <el-checkbox v-model="currentEditConditionBackup.testYear">限制年份</el-checkbox>
+              </el-tooltip>
+            </div>
+            <div v-else-if="currentEditConditionBackup.type=='星期区间'">
+              <el-select v-model="currentEditConditionBackup.week" style="width: 100px;" placeholder="请选择开始星期">
+                <el-option v-for="item in weekLabels" :key="item.value" :label="item.label" :value="item.value"></el-option>
+              </el-select>
+              &nbsp;&nbsp;至&nbsp;&nbsp;
+              <el-select v-model="currentEditConditionBackup.weekStart" style="width: 100px;" placeholder="请选择结束星期">
+                <el-option v-for="item in weekLabels" :key="item.value" :label="item.label" :value="item.value"></el-option>
+              </el-select>
+            </div>
+            <div v-else-if="currentEditConditionBackup.type=='日期区间'">
+
+              <el-date-picker
+                v-model="currentEditConditionBackup.dateStart"
+                type="date"
+                placeholder="选择起始日期"
+                style="width: 150px;"
+                :format="currentEditConditionBackup.testYear ? 'yyyy-MM-dd' : 'MM-dd'">
+              </el-date-picker>
+              &nbsp;&nbsp;至&nbsp;&nbsp;
+              <el-date-picker
+                v-model="currentEditConditionBackup.dateEnd"
+                type="date"
+                placeholder="选择结束日期"
+                style="width: 150px;"
+                :format="currentEditConditionBackup.testYear ? 'yyyy-MM-dd' : 'MM-dd'">
+              </el-date-picker>
+
               <br/>
               <el-tooltip class="item" effect="dark" content="是否限制年份，如果不限制年份则以月份为条件" placement="top">
                 <el-checkbox v-model="currentEditConditionBackup.testYear">限制年份</el-checkbox>
@@ -398,10 +430,10 @@
               <el-switch v-model="item.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
               <span>{{ item.getFriendlyString() }}</span>
               <el-button type="danger" class="btn" icon="el-icon-delete" @click="deleteCondition(item)" circle></el-button>
-              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTableBackup.playConditions, ['日期','星期'])" circle></el-button>
+              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTableBackup.playConditions, ['日期','星期','星期区间','日期区间'])" circle></el-button>
             </div>
             <el-tooltip class="item" effect="dark" content="添加播放条件" placement="right">
-              <div class="btn-add round" @click="addCondition(currentEditTableBackup, currentEditTableBackup.playConditions, ['日期','星期'])"></div>
+              <div class="btn-add round" @click="addCondition(currentEditTableBackup, currentEditTableBackup.playConditions, ['日期','星期','星期区间','日期区间'])"></div>
             </el-tooltip>
           </el-form-item>
           <el-form-item label="时间表备注">
@@ -423,29 +455,29 @@
             <el-input v-model="currentEditTaskBackup.name" maxlength="10" show-word-limit></el-input>
           </el-form-item>
           <el-form-item label="播放条件">
-            <span class="text-secondary el-form-span">任务将会自动根据您设置的条件进行播放，这些条件以“与”的方式进行判断，并且对于任务，必须要有并且只有一个精确时间条件才能正常运行。</span>
+            <span class="text-secondary el-form-span">任务将会自动根据您设置的条件进行播放，这些条件以<b>“与”</b>的方式进行判断，并且对于任务，必须要有并且只有一个<a href="javascript:;" @click="showHelpWindow('')">精确时间条件</a>才能正常运行。</span>
             <div v-for="(item, index) in currentEditTaskBackup.playConditions" class="com-item">
               <el-switch v-model="item.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
               <span>{{ item.getFriendlyString() }}</span>
               <el-button type="danger" class="btn" icon="el-icon-delete" @click="deleteCondition(item)" circle></el-button>
-              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTaskBackup.playConditions, ['时间','日期','星期'])" circle>
+              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTaskBackup.playConditions, ['时间','日期','星期','日期区间','星期区间'])" circle>
               </el-button>
             </div>
             <el-tooltip class="item" effect="dark" content="添加播放条件" placement="right">
-              <div class="btn-add round" @click="addCondition(currentEditTaskBackup, currentEditTaskBackup.playConditions, ['时间','日期','星期'])"></div>
+              <div class="btn-add round" @click="addCondition(currentEditTaskBackup, currentEditTaskBackup.playConditions, ['时间','日期','星期','星期区间','日期区间'])"></div>
             </el-tooltip>
           </el-form-item>
           <el-form-item label="停止条件">
-            <span class="text-secondary el-form-span">您可以为任务设置停止条件，如果任务在达到停止条件后，将会自动停止播放。这些条件以“与”的方式进行判断，并且对于任务，必须要有并且只有一个精确时间条件才能正常运行。</span>
+            <span class="text-secondary el-form-span">您可以为任务设置停止条件，如果任务在达到停止条件后，将会自动停止播放。这些条件以<b>“与”</b>的方式进行判断，并且对于任务，必须要有并且只有一个<a href="javascript:;" @click="showHelpWindow('')">精确时间条件</a>才能正常运行。</span>
             <div v-for="(item, index) in currentEditTaskBackup.stopConditions" class="com-item">
               <el-switch v-model="item.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
               <span>{{ item.getFriendlyString() }}</span>
               <el-button type="danger" class="btn" icon="el-icon-delete" @click="deleteCondition(item)" circle></el-button>
-              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTaskBackup.stopConditions, ['时间','日期','星期'])" circle>
+              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTaskBackup.stopConditions, ['时间','日期','星期','星期区间','日期区间'])" circle>
               </el-button>
             </div>
             <el-tooltip class="item" effect="dark" content="添加停止条件" placement="right">
-              <div class="btn-add round" @click="addCondition(currentEditTaskBackup, currentEditTaskBackup.stopConditions, ['时间','日期','星期'])"></div>
+              <div class="btn-add round" @click="addCondition(currentEditTaskBackup, currentEditTaskBackup.stopConditions, ['时间','日期','星期','星期区间','日期区间'])"></div>
             </el-tooltip>
           </el-form-item>
           <el-form-item label="任务操作">
@@ -597,6 +629,13 @@
               <el-form-item label="本软件长时间无操作时自动隐藏">
                 <el-switch v-model="appSettingsBackup.autoHide" style="margin: 10px 0;"></el-switch><br>
               </el-form-item>
+              <el-form-item label="主窗口背景图片">
+                <el-input laceholder="输入背景图片文件的路径" v-model="appSettingsBackup.appBackground">
+                  <template slot="append">
+                    <el-button size="mini" icon="el-icon-folder" @click="chooseImage({type:'chooseBackground'})">选择文件</el-button>
+                  </template>
+                </el-input>
+              </el-form-item>
             </el-form>
           </el-tab-pane>
           <el-tab-pane label="安全" name="security">
@@ -662,7 +701,7 @@
               v-model="appSettingsBackup.autoUpdate">
             </el-switch>
             <el-divider content-position="left">更新状态</el-divider>
-            <h4 class="m-0">{{ }}</h4>
+            <h4 class="m-0">当前没有更新</h4>
             <span class="text-secondary">{{  }}</span>
           </el-tab-pane>
           <el-tab-pane label="关于" name="about">
@@ -792,6 +831,29 @@
           </el-pagination>
           <el-button type="primary" @click="showLogDialog=false">关闭</el-button>
         </span>
+      </el-dialog>
+      <!--初次概览-->
+      <el-dialog :visible.sync="showFirstIntroDialog" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        width="400px" 
+        class="into-dialog">
+        <h5>校园铃声自动播放系统</h5>
+        <el-carousel height="410px">
+          <el-carousel-item class="into-item">
+            <img src="assets/images/into/0.jpg" /><br>
+            <span>更方便、快捷地管理您的时间表数据</span>
+          </el-carousel-item>
+          <el-carousel-item class="into-item">
+            <img src="assets/images/into/1.jpg" /><br>
+            <span>全自动无人值守更省心</span>
+          </el-carousel-item>
+          <el-carousel-item class="into-item">
+            <img src="assets/images/into/2.jpg" /><br>
+            <el-button @click="closeIntroDialog()" type="primary">立即使用</el-button>
+          </el-carousel-item>
+        </el-carousel>
+        <div class="bg"></div>
       </el-dialog>
 
       <!--侧栏音乐列表-->

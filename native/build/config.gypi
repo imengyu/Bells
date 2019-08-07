@@ -60,7 +60,7 @@
     "openssl_fips": "",
     "openssl_is_fips": "false",
     "shlib_suffix": "so.72",
-    "target_arch": "x64",
+    "target_arch": "ia32",
     "v8_enable_gdbjit": 0,
     "v8_enable_i18n_support": 1,
     "v8_enable_inspector": 1,
@@ -72,8 +72,10 @@
     "v8_use_siphash": 1,
     "v8_use_snapshot": 1,
     "want_separate_host_toolset": 0,
-    "nodedir": "C:\\Users\\a\\AppData\\Local\\node-gyp\\Cache\\12.7.0",
+    "nodedir": "C:\\Users\\a\\AppData\\Local\\node-gyp\\Cache\\6.0.0",
     "standalone_static_library": 1,
-    "msbuild_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+    "msbuild_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\MSBuild\\15.0\\Bin\\MSBuild.exe",
+    "target": "6.0.0",
+    "abi": "73"
   }
 }

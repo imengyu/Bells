@@ -137,7 +137,6 @@ $list-area-width: 275px;
 /*侧边栏 季节以及控制按钮*/
 .side-area {
   position: absolute;
-  background-color: rgb(58, 58, 58);
   width: 80px;
   top: 0;
   bottom: 0;
@@ -226,7 +225,12 @@ $list-area-width: 275px;
 .left-area {
 
   position: absolute;
-  background-color: #efefef;
+  background-color: rgba(255, 255, 255, 0.88);
+
+  &.hasBackground {
+    background-color: rgba(255,255,255,.5);
+  }
+
   top: 0;
   left: $side-area-width;
   bottom: 0;
@@ -317,6 +321,18 @@ $list-area-width: 275px;
         background-size: 20px;
       }
     }
+  }
+}
+.main-area-background{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: $list-area-width + $side-area-width;
+  background-color: rgba(255,255,255, .95);
+
+  &.hasBackground {
+    background-color: rgba(255,255,255,.85);
   }
 }
 .music-player-area {
@@ -481,7 +497,7 @@ $list-area-width: 275px;
   }
 
   .erricon {
-    font-size: 30px;
+    font-size: 38px;
     color: #bd6819;
     margin-bottom: 10px;
   }
@@ -620,6 +636,7 @@ $list-area-width: 275px;
     margin: 0;
     padding: 9px 10px 9px 20px;
     height: auto;
+    background-color: rgba(216, 216, 216, .5);
 
     &:hover {
       background-color: rgba(0,0,0,.1);
@@ -767,9 +784,9 @@ $list-area-width: 275px;
   transition: top ease-in-out .3s;
   text-align: center;
   z-index: 1000;
-  background: white;
+  background-color: #3a3a3a;
+  background-size: cover;
   
-
   &.show {
     top: 0;
   }
@@ -781,7 +798,12 @@ $list-area-width: 275px;
     top: 0;
     bottom: 0;
     right: 0;
-    background-color: #eaeaea;
+    background-color: rgba(255,255,255,.8);
+
+    &.hasBackground {
+      background-color: rgba(255,255,255,.2);
+    }
+
     border-bottom-left-radius: 20px;
     border-top-left-radius: 20px;
     z-index: 1;
@@ -939,4 +961,69 @@ $list-area-width: 275px;
   text-overflow: ellipsis;
 }
 
+.app-background0 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: $side-area-width + $list-area-width;;
+  z-index: 0;
+  background-color: #3a3a3a;
+}
+.app-background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  opacity: .8;
 
+  background-color: transparent;
+  background-size: cover;
+}
+
+//初始特性对话框
+.into-dialog {
+
+  .el-dialog__header{
+    display: none;
+  }
+  .el-dialog__body{
+    padding: 10px;
+  }
+
+  h5 {
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  .bg {
+   
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    z-index: 0;
+    background-image: url(../images/into/bg.jpg);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+
+}
+.into-item{
+
+  text-align: center;
+
+  img {
+    max-width: 300px;
+    height: auto;
+    margin-top: 20px;
+  }
+
+  span {
+    
+  }
+
+}

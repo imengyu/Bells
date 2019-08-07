@@ -143,7 +143,7 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipc.on('main-open-file-dialog', function (event, arg) {
+ipc.on('main-open-file-dialog-music', function (event, arg) {
   var properties = ['openFile'];
   if(arg.type == 'addMusicsToHistoryList')
     properties.push('multiSelections');
@@ -156,6 +156,19 @@ ipc.on('main-open-file-dialog', function (event, arg) {
     ],
   }, function (files) {
     if (files) event.sender.send('selected-music', arg, files)
+  })
+})
+ipc.on('main-open-file-dialog-image', function (event, arg) {
+  var properties = ['openFile'];
+  dialog.showOpenDialog(mainWindow, {
+    properties: properties,
+    title: '选择图片文件',
+    filters: [
+      { name: '图像文件', extensions: ['bmp', 'jpg', 'png'] },
+      { name: '所有文件', extensions: ['*'] }
+    ],
+  }, function (files) {
+    if (files) event.sender.send('selected-image', arg, files)
   })
 })
 ipc.on('main-act-quit', function (event, arg) {

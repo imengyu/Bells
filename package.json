@@ -1,25 +1,26 @@
 {
-  "name": "Bells",
+  "name": "bells",
   "version": "1.0.0",
-  "description": "",
+  "description": "校园铃声自动播放系统.这是一款为中小学校播音工作室打造的一款可自动播放铃声、音乐的一款软件.",
   "main": "./src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-packager ./src/ 校园铃声自动播放系统 --out './dist' --overwrite --platform=win32 --arch=ia32 --icon=./src/assets/images/logo.ico --asar --app-version=1.0.0 --ignore=package-lock.json"
   },
   "keywords": [],
-  "author": "",
+  "author": "梦欤",
   "license": "ISC",
   "config": {
     "arch": "ia32",
     "registry": "https://registry.npm.taobao.org"
   },
   "dependencies": {
-    "electron": "^6.0.0",
-    "ffi": "github:gavignus/node-ffi#torycl/forceset-fix",
+    "electron": "^6.0.1",
     "nedb": "^1.8.0"
   },
   "devDependencies": {
+    "electron-packager": "^14.0.4",
     "electron-rebuild": "^1.8.5"
   }
 }

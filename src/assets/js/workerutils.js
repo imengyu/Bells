@@ -56,16 +56,22 @@ PlayDate.fromJsonObject = function(json){
 var PlayContidion = function(type, val) {
 
   this.type = type;
+  this.datetime = null;
+  this.dateStart = null;
+  this.dateEnd = null;
+  this.weekStart = 0;
+  this.weekEnd = 0;
+
   if(this.type=='星期'){
     this.week = val;
-    this.datetime = null;
-  }
-  else if(this.type=='日期' || this.type=='时间'){
-    this.week = 0;
+  }else if(this.type=='星期区间'){
+    this.weekStart = val[0];
+    this.weekEnd = val[1];
+  }else if(this.type=='日期区间'){
+    this.dateStart = val[0];
+    this.dateEnd = val[1];
+  }else if(this.type=='日期' || this.type=='时间'){
     this.datetime = val;
-  }else{
-    this.week = 0;
-    this.datetime = null;
   }
   this.testYear = false;
   this.enabled = true;
@@ -77,6 +83,10 @@ var PlayContidion = function(type, val) {
       return this.week == playContidion.week;
     else if(this.type=='日期' || this.type=='时间')
       return this.datetime == playContidion.datetime;
+    else if(this.type == '星期区间')
+      return this.weekStart == playContidion.weekStart && this.weekEnd == playContidion.weekEnd;
+    else if(his.type == '日期区间')
+      return this.dateStart == playContidion.dateStart && this.dateEnd == playContidion.dateEnd;
     return true;
   }
   this.clone = function(){
@@ -86,6 +96,10 @@ var PlayContidion = function(type, val) {
     newV.enabled = this.enabled;
     newV.parent = this.parent;
     newV.datetime = this.datetime;
+    newV.dateStart = this.dateStart;
+    newV.dateEnd = this.dateEnd;
+    newV.weekStart = this.weekStart;
+    newV.weekEnd = this.weekEnd;
     return newV
   }
   this.copyValue = function(sourcePlayContidion){
@@ -95,6 +109,10 @@ var PlayContidion = function(type, val) {
     this.parent = sourcePlayContidion.parent;
     this.datetime = sourcePlayContidion.datetime;
     this.type = sourcePlayContidion.type;
+    this.dateStart = sourcePlayContidion.dateStart;
+    this.dateEnd = sourcePlayContidion.dateEnd;
+    this.weekStart = sourcePlayContidion.weekStart;
+    this.weekEnd = sourcePlayContidion.weekEnd;
   }
 
   this.isPlayingTime = function() {
@@ -115,6 +133,42 @@ var PlayContidion = function(type, val) {
       return this.datetime.getHours() == now.getHours() 
         && this.datetime.getMinutes() == now.getMinutes() 
         && this.datetime.getSeconds() == now.getSeconds();
+    }else if(this.type == '星期区间'){
+      var nowDay = now.getDay();
+      if(this.weekStart == this.weekEnd)
+        return nowDay == this.weekStart;
+      if(this.weekStart < this.weekEnd)
+        return this.weekStart <= nowDay && nowDay <= this.weekEnd;
+      else 
+        return nowDay >= this.weekStart || nowDay <= this.weekEnd;
+    }else if(this.type == '日期区间'){
+      if(this.testYear)
+        return this.dateStart <= now && now <= this.dateEnd;
+      else {
+        var compareMonthAndDay = function(m1,d1,m2,d2){
+          if(m1 == m2 && d1 == d2) return 0;
+          return (m1 < m2 || (m1 == m2 && d1 < d2)) ? -1 : 1;
+        }
+
+        var nowDay = now.getDate();
+        var nowMonth = now.getMonth();
+        var startDay = this.dateStart.getDate();
+        var startMonth = this.dateStart.getMonth();
+        var endDay = this.dateEnd.getDate();
+        var endMonth = this.dateEnd.getMonth();
+
+        if(compareMonthAndDay(startMonth, startDay, endMonth, endDay) == 0){//相等
+          return compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) == 0;
+        }else if(compareMonthAndDay(startMonth, startDay, endMonth, endDay) == -1){//小于
+          return (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0 &&
+            compareMonthAndDay(nowMonth, nowDay, endMonth, endDay) <= 0)
+        }else{//大于
+          //9.15 ~   ~ 1.3
+          return (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0||
+            compareMonthAndDay(nowMonth, nowDay, endMonth, endDay) <= 0)
+        }
+
+      }
     }
     return false;
   }

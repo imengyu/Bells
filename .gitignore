@@ -2,5 +2,9 @@
 /build/
 /data/
 /native/build/Release/
-/node_modules/
-/native/build/.vs/
+node_modules/
+.vs/
+/src/node_modules/
+/native/build/
+/dist/
+package-lock.json
