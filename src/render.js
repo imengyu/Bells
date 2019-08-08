@@ -1,12 +1,5 @@
-if(typeof require == 'undefined') {
-  window.onload = function(){
-    $('#global-error-info').prop('style','');
-    $('#global-error-info-text').text('当前应用不能在浏览器中运行!');
-  }
-  throw Error('当前应用不能在浏览器中运行!');
-}
-
 const electron = require("electron");
+const fs = require("fs");
 const ipc = electron.ipcRenderer;
 const remote = electron.remote;
 const Menu = remote.Menu;
@@ -18,9 +11,8 @@ var mainAppRunning = false;
 var bellsWin32 = require('./lib/bells.node')
 
 function hideIntro() {
-  var intro = document.getElementById('intro');
-  intro.setAttribute('class', 'intro hidding');
-  setTimeout(function () { intro.setAttribute('class', 'intro hidden'); }, 1000);
+  $('#intro').prop('class', 'intro hidding');
+  setTimeout(function () { $('#intro').prop('class', 'intro hidden'); }, 1000);
 }
 function initVue() {
   main = new Vue({
@@ -38,7 +30,6 @@ function initVue() {
       return {
 
         /*日期显示*/
-        currentTime: '--:--:--',
         currentDateStr: '-',
         currentDate: null,
         displayTimer: null,
@@ -103,6 +94,7 @@ function initVue() {
             { validator: validatePass2, trigger: 'blur' }
           ],
         },
+        developModeTestCkick: 0,
 
         /*标题栏*/
         isMax: false,
@@ -128,9 +120,11 @@ function initVue() {
 
         /*菜单*/
         menuSettings: null,
+        menuItemDeveloper: null,
         menuSeason: null,
         menuTable: null,
         menuTask: null,
+        menuInput: null,
 
         /*主控数据*/
 
@@ -153,9 +147,6 @@ function initVue() {
         /** 全局数据入口 */
         data:[],
         dataLastSaveDate: null,
-        dataTour: [
-
-        ],
 
         /** 全局时钟 */
         timeNow: null,
@@ -217,6 +208,7 @@ function initVue() {
           maxPlayingMusic: 3,
           playingMusicVolume: 50,
           musicPlayingListShow: true,
+          developerMode: false
         },
         appSettings: null,
         appSettingsBackup: null,
@@ -239,14 +231,6 @@ function initVue() {
         var dd = this.currentDate.getDate();
         this.currentDateStr = prefixInteger(yy, 4) + '/' + prefixInteger(mm, 2) + '/' + prefixInteger(dd, 2) +
           ' ' + getWeekString(this.currentDate.getDay()) + ' ' + GetLunarDay(yy, mm, dd);
-        this.displayTimer = setInterval(() => {
-          this.updateDisplayTime();
-        }, 1000);
-      },
-      updateDisplayTime() {
-        var now = new Date();
-        this.currentTime = prefixInteger(now.getHours(), 2) + ':' +
-          prefixInteger(now.getMinutes(), 2) + ':' + prefixInteger(now.getSeconds(), 2);
       },
       showDatePicker() {
         this.$refs.sideDatePicker.focus();
@@ -553,12 +537,21 @@ function initVue() {
         this.menuSettings = new Menu();
         
         this.menuSettings.append(new MenuItem({ label: '锁定软件', click: () => { this.switchSystemLock(true); } }));
+        this.menuSettings.append(new MenuItem({ type: 'separator' }))
         this.menuSettings.append(new MenuItem({ label: '数据导出与导入', click: () => { this.editSetings('data'); } }));
-        this.menuSettings.append(new MenuItem({ label: '查看日志', click: () => { this.showLogDialog =true;this.showLog(0); } }));
         this.menuSettings.append(new MenuItem({ label: '手动保存数据', click: () => { this.saveAndReloadData(); } }));
-        this.menuSettings.append(new MenuItem({ label: 'Test1', click: () => { this.showFirstView(); } }));
-        this.menuSettings.append(new MenuItem({ label: 'Test2', click: () => { this.runTour(); } }));
+        this.menuSettings.append(new MenuItem({ label: '查看日志', click: () => { this.showLogDialog =true;this.showLog(0); } }));
+        this.menuSettings.append(new MenuItem({ type: 'separator' }))
+        this.menuSettings.append(new MenuItem({ label: '入门', click: () => { this.showFirstView(); } }));
 
+        var developerSubMenu = new Menu();
+        developerSubMenu.append(new MenuItem({ label: '强制清除数据', click: () => { this.forceClearData() } }));
+        developerSubMenu.append(new MenuItem({ label: '切换开发者工具', click: () => { ipc.send('main-act-window-control', 'switchDevTools'); } }));
+        developerSubMenu.append(new MenuItem({ label: '打开进程管理器', click: () => { ipc.send('main-act-window-control', 'openProcessManager'); } }));
+
+        this.menuItemDeveloper = new MenuItem({ label: '开发者选项', submenu: developerSubMenu });
+        this.menuItemDeveloper.visible = false;
+        this.menuSettings.append(this.menuItemDeveloper);
         
         var powerSubMenu = new Menu();
         powerSubMenu.append(new MenuItem({ label: '关闭计算机', click: () => { this.shutdownByUser(); } }));
@@ -583,7 +576,18 @@ function initVue() {
         this.menuTask = new Menu();
         this.menuTask.append(new MenuItem({ label: '编辑任务', click: () => { this.editTask(); } }));
         this.menuTask.append(new MenuItem({ label: '删除任务', click: () => { this.deleteTask(); } }))
+        this.menuTask.append(new MenuItem({ type: 'separator' }))
         this.menuTask.append(new MenuItem({ label: '立即播放任务', click: () => { this.playTaskUser(); } }))
+
+
+        this.menuInput = new Menu();
+        this.menuInput.append(new MenuItem({ label:'剪切', role: 'cut' }));
+        this.menuInput.append(new MenuItem({ label:'复制', role: 'copy' }));
+        this.menuInput.append(new MenuItem({ label:'粘贴', role: 'paste' }));
+        this.menuInput.append(new MenuItem({ label:'删除', role: 'delete' }));
+        this.menuInput.append(new MenuItem({ label:'全选', role: 'selectall' }));
+
+
       },
       showMenuSettings() { this.menuSettings.popup(remote.getCurrentWindow()); },
       showMenuSeason(season) { this.currentEditSeason = season; this.menuSeason.popup(remote.getCurrentWindow()); },
@@ -594,7 +598,7 @@ function initVue() {
       },
       mainListItemDoubleClick(row, column, event){
         this.currentEditTask = row;
-        this.playTask();
+        this.playTask(row);
       },
 
       /*数据主控*/
@@ -758,6 +762,10 @@ function initVue() {
           });
         }
       },
+      forceClearData(){
+        this.loadJsonData([]);
+        this.$message('强制清除数据');
+      },
       loadSettings() {
         if(this.appSettings.appFirstLoad){
           this.appSettings.appFirstLoad = false;
@@ -766,6 +774,8 @@ function initVue() {
         this.playingMusicVolume = this.appSettings.playingMusicVolume;
         this.musicPlayingListShow = this.appSettings.musicPlayingListShow;
         maxUserOutTime = this.appSettings.autoLockMaxMinute;
+        if(this.appSettings.developerMode)
+          this.turnOnDeveloperMode();
         //Title
         if(!isNullOrEmpty(this.appSettings.appTitle)){
           document.getElementsByTagName('title')[0].innerText = this.appSettings.appTitle;
@@ -803,6 +813,8 @@ function initVue() {
           }
         }
         mainAppRunning = true;
+        this.currentShowSeason = null;
+        this.currentShowTable = null;
         this.switchCurrentSeason();
       },
       displayJsonData(){
@@ -880,26 +892,43 @@ function initVue() {
       },
       runTour(){
         //load data for tour
-        this.data = this.dataTour;
+        if(!this.data || this.data.length == 0){
+          this.data = JSON.parse(fs.readFileSync('data-example.json'));
+          this.loadJsonData(this.data);
+        }
         // Show the tour
         $('#walkthrough-content').prop('style','');
         $('body').pagewalkthrough({
           name: 'introduction',
           steps: [
-          { popup: {content: '#walkthrough-1', type: 'modal' }
-          }, {wrapper: '.side-area',popup: {content: '#walkthrough-2', type: 'tooltip',position: 'right'}
-          }, {wrapper: '.left-area',popup: {content: '#walkthrough-3', type: 'tooltip',position: 'right'}
-          }, {wrapper: '.main-area',popup: {content: '#walkthrough-4', type: 'tooltip',position: 'bottom'}
-          }, {wrapper: '.side-bottom',popup: {content: '#walkthrough-5', type: 'tooltip',position: 'right'}
+          { popup: {content: '#walkthrough-1', type: 'modal',width:'370px' }
+          }, {wrapper: '#side_top',popup: {content: '#walkthrough-2', type: 'tooltip',position: 'right', offsetVertical: 20,}
+          }, {wrapper: '#table_area',popup: {content: '#walkthrough-3', type: 'tooltip',position: 'right', offsetVertical: 200 }
+          }, {wrapper: '#main_area',popup: {content: '#walkthrough-4', type: 'tooltip',position: 'left', width: '150px', offsetVertical: 200, offsetHorizontal: 25, offsetArrowHorizontal: 25 }
+          }, {wrapper: '#side_bottom',popup: {content: '#walkthrough-5', type: 'tooltip',position: 'right'}
           }, {wrapper: '#btn-help',popup: {content: '#walkthrough-6', type: 'tooltip',position: 'right'}
-          }, {wrapper: '.music-player-area',popup: {content: '#walkthrough-7', type: 'tooltip',position: 'left'}
+          }, {wrapper: '#music_player_area',popup: {content: '#walkthrough-7', type: 'tooltip', position: 'top', width: '300px', offsetVertical: -50 }
           }, { popup: {content: '#walkthrough-8', type: 'modal' }
-          }]
+          }],
+          buttons: {
+            jpwClose: {
+              i18n: "点击关闭"
+            },
+            jpwNext: {
+              i18n: "下一步 &rarr;"
+            },
+            jpwPrevious: {
+              i18n: "&larr; 上一步"
+            },
+            jpwFinish: {
+              i18n: "完成 &#10004;"
+            }
+          }
         });
         $('body').pagewalkthrough('show');
       },
       closeTour(){
-        $('body').pagewalkthrough('HIDE');
+        $('body').pagewalkthrough('close');
       },
 
       /*状态控制 */
@@ -936,8 +965,9 @@ function initVue() {
           if (!table.enabled) {
             table.status = 'disabled'
             table.playedTasks = 0;
-          }
-          else for (var j = 0, d = table.playConditions.length; j < d; j++) {
+          }else if (table.alwaysPlay) {
+            playing = true;
+          }else for (var j = 0, d = table.playConditions.length; j < d; j++) {
             if (table.playConditions[j].isPlayingTime()) {
               playing = true;
               break;
@@ -1048,6 +1078,7 @@ function initVue() {
         }).catch(() => {});
       },
       editSetings(tab){
+        this.developModeTestCkick = 0;
         this.settingsActiveTab = tab;
         this.appSettingsBackup = clone(this.appSettings);
         this.showSettingsDialog = true;
@@ -1183,6 +1214,7 @@ function initVue() {
           note: '',
           status: '',
           enabled: true,
+          alwaysPlay: false,
           season: this.currentShowSeason,
           playConditions: [],
           playedTasks: 0,
@@ -1254,7 +1286,8 @@ function initVue() {
       },
       editConditionFinish(save){
         if(save){
-          if(this.findCondition(this.currentEditConditionBackup, this.currentEditConditionList)){
+          var oldCon = this.findCondition(this.currentEditConditionBackup, this.currentEditConditionList);
+          if(oldCon && oldCon != this.currentEditCondition){
             this.$alert('当前时间表已经有一个 “' + this.currentEditConditionBackup.getFriendlyString() + '” 的播放条件，请不要重复添加同样的条件。', '提示', { confirmButtonText: '确定' });
             return;
           }
@@ -1358,6 +1391,8 @@ function initVue() {
           task.playingMid = this.addPlayMusics(task.commands, musicArgs, (status, playedCount, err) => {
             if(task.status != 'played' && status == 'played')
               task.parent.playedTasks += 1;
+            if(status == 'error')
+              this.$message({ message: '播放任务失败：' + err, type: 'error', duration: 5000 })
             task.status = status;
             task.playedCommands = playedCount;
             task.playeError = err;
@@ -1458,8 +1493,9 @@ function initVue() {
 
         var mid = this.playingMusicId;
         var id = 'playingMusic_' + mid;
+        var currentPlayPath = '';
         
-        var parent = document.getElementById('music_area');
+        var parent = document.getElementById('music_player_area');
         var newMusicItem = document.createElement('div');
         var newMusicItemAudio = document.createElement('audio');
         var newMusicItemButton = document.createElement('div');
@@ -1499,19 +1535,46 @@ function initVue() {
         };
 
         var startAudio = () => {
-          newItem.currProgress.setAttribute('style', '0%');
-          try{
-            newMusicItemAudio.load();
-            newMusicItemAudio.play();
-            if(newItem.callback) 
-              newItem.callback('playing', newItem.currentIndex + 1, null);
-            this.log('开始播放音乐：' + getFileName(newItem.musics[newItem.currentIndex]), { modulname: '音乐播放器' })
-          }catch(e){
-            if(newItem.callback) 
-              newItem.callback('error', newItem.currentIndex + 1, e);
-            this.log('播放音乐错误：' + newMusicItemAudio.src + ' 错误信息' + e, { modulname: '音乐播放器', level: '错误' })
-            this.stopPlayMusic(mid, true);
-          }
+          fs.exists("dirName", (exists) => {
+            if(exists){
+              newItem.currProgress.setAttribute('style', '0%');
+              try{
+                setTimeout(() => {
+                  if(newMusicItemAudio.error != null){
+                    var err = '未知错误';
+                    switch(newMusicItemAudio.error.code) {
+                      case 1: err = '操作被终止';break;
+                      case 2: err = '打开文件时出现了错误';break;
+                      case 3: err = '无法解码该文件';break;
+                      case 4: err = '不支持的音频格式';break;
+                    }
+                    this.log('播放音乐错误：' + 
+                      this.getFileName(currentPlayPath) + 
+                      ' 错误信息 : ' + err, { modulname: '音乐播放器', level: '错误' });
+                    this.stopPlayMusic(mid, true);
+                    if(newItem.callback) 
+                      newItem.callback('error', newItem.currentIndex + 1, err);
+                  }
+                }, 2000);
+                
+                newMusicItemAudio.load();
+                newMusicItemAudio.play();
+                if(newItem.callback) 
+                  newItem.callback('playing', newItem.currentIndex + 1, null);
+                this.log('开始播放音乐：' + this.getFileName(currentPlayPath), { modulname: '音乐播放器' })
+              }catch(e){
+                if(newItem.callback) 
+                  newItem.callback('error', newItem.currentIndex + 1, e);
+                this.log('播放音乐错误：' + this.getFileName(currentPlayPath) + ' 错误信息 : ' + e, { modulname: '音乐播放器', level: '错误' })
+                this.stopPlayMusic(mid, true);
+              }
+            }else{
+              if(newItem.callback) 
+                newItem.callback('error', newItem.currentIndex + 1, '文件不存在');
+              this.log('播放音乐错误：' + this.getFileName(currentPlayPath) + ' 错误信息 : 文件不存在', { modulname: '音乐播放器', level: '错误' })
+              this.stopPlayMusic(mid, true);
+            }
+          });
         };
 
         //设置属性
@@ -1521,9 +1584,10 @@ function initVue() {
           if(newItem.currentIndex < newItem.musics.length - 1){
             //继续播放下一个音乐
             newItem.currentIndex++;
+            currentPlayPath = newItem.musics[newItem.currentIndex];
             newMusicItemAudio.src = newItem.musics[newItem.currentIndex];
-            newItem.currTextInner.innerText = this.getFileName(newItem.musics[newItem.currentIndex]);
-            newItem.currTextInner.setAttribute('title', newItem.musics[newItem.currentIndex]);
+            newItem.currTextInner.innerText = this.getFileName(currentPlayPath);
+            newItem.currTextInner.setAttribute('title', currentPlayPath);
             startAudio();
           }else{
             if(newItem.musicLoopCount > 0){
@@ -1554,9 +1618,10 @@ function initVue() {
        
           
         //开始播放
-        newMusicItemAudio.src = newItem.musics[newItem.currentIndex];
-        newItem.currTextInner.innerText = this.getFileName(newItem.musics[newItem.currentIndex]);
-        newItem.currTextInner.setAttribute('title', newItem.musics[newItem.currentIndex]);
+        currentPlayPath = newItem.musics[newItem.currentIndex];
+        newMusicItemAudio.src = currentPlayPath;
+        newItem.currTextInner.innerText = this.getFileName(currentPlayPath);
+        newItem.currTextInner.setAttribute('title', currentPlayPath);
         newItem.currProgress.setAttribute('style', '0%');
         startAudio();
 
@@ -1572,7 +1637,7 @@ function initVue() {
           if(element.mid == mid){
             element.audio.pause();
             if(!notCallback && element.callback) element.callback('played', element.currentIndex + 1, null);
-            document.getElementById('music_area').removeChild(element.htmlItem);
+            document.getElementById('music_player_area').removeChild(element.htmlItem);
             this.playingMusic.splice(this.playingMusic.indexOf(element), 1);
             console.log('Stop play music item ' + mid);
             this.log('停止播放音乐任务：' + mid, { modulname: '音乐播放器' })
@@ -1601,7 +1666,22 @@ function initVue() {
         this.musicHistoryList.splice(this.musicHistoryList.indexOf(music), 1);
       },
 
-
+      turnOnDeveloperMode(){
+        this.appSettings.developerMode = true;
+        this.menuItemDeveloper.visible = true;
+      },
+      toggleDeveloperMode(){
+        if(this.developModeTestCkick < 10) {
+          this.developModeTestCkick++;
+          if(this.developModeTestCkick >= 3)
+            this.$message('再次单击 ' + (11 - this.developModeTestCkick) + ' 次即可进入开发者模式', {duration:1000});
+        }else if(!this.appSettings.developerMode) {
+          this.turnOnDeveloperMode();
+          this.$message('您已经处于开发者模式！', {duration:1000});
+        }else {
+          this.$message('您已经处于开发者模式！', {duration:1000});
+        }
+      },
       userOutHideOrLock(){
         if(this.appSettings.autoHide) this.closeWindow();
         if(this.appSettings.autoLock && !this.systemLocked){
@@ -1610,7 +1690,7 @@ function initVue() {
         }
       },
 
-      /*ui使用的附加函数*/
+      /*ui使用的附加函数*/   
       forceLoadJsonDataUser(){
         if(this.testJSONData == null || this.testJSONData == ''){
           this.$alert('请输入数据然后再导入！');
@@ -1773,6 +1853,10 @@ function initVue() {
     main.loadMenus();
     main.loadAllData();
 
+    $("#clock").flipcountdown({
+      size: "sm"
+    });
+
     if(task_area)  main.mainTableHeight = task_area.offsetHeight - 35;
   }, 700);
 
@@ -1805,64 +1889,68 @@ function initVue() {
       main.mainTableHeight = task_area.offsetHeight - 35;
   }
   window.addEventListener("blur", function () {
-    if (main.displayTimer != null) {
-      clearInterval(main.displayTimer);
-      main.displayTimer = null;
-    }
   });
   window.addEventListener("focus", function () {
     if (!timerUserOut) 
       timerUserOut = setInterval(timerUserOutTick, 60000);
-    if (main.displayTimer == null)
-      main.loadDisplayTimer();
   });
+  window.addEventListener('contextmenu', function (e) { 
+    e.preventDefault();
+    if(isEleEditable(e.target)){
+      main.menuInput.popup(remote.getCurrentWindow());
+    }
+  }, false) ;
+
 
 }
+function initIpc() {
 
-ipc.on('selected-image', function (event, arg, path) {
-  if(!path || path.length == 0) 
-    return;
-  if(arg.type=='chooseBackground'){
-    if(main.appSettingsBackup)
-      main.appSettingsBackup.appBackground = path[0];
-  }
-});
-ipc.on('selected-music', function (event, arg, path) {
-  if(!path || path.length == 0) 
-    return;
-  if(arg.type=='chooseCommandMusic'){
-    main.addMusicToHistoryList(path[0]);
-    main.setCommandMusic(arg.index, path[0]);
-  }
-  if(arg.type=='openAndPlay'){
-    main.addMusicToHistoryList(path[0]);
-    main.addPlayMusics([path[0]], {
-      musicVolume: -1,
-      musicLoopCount: -1,
-      musicTimeLimit: 0,
-      musicStartPos: 0,
-    });
-  }
-  if(arg.type=='addMusicsToHistoryList'){
-    var index = 0;
-    path.forEach(element => {
-      if(element!=''){
-        main.addMusicToHistoryList(element);
-        index++;
-      }
-    });
-    main.$message({
-      message: '成功添加 ' + index + ' 首音乐！',
-      type: 'success'
-    });
-  }
-});
-//主进程的ipc
-ipc.on('main-window-act', function (event, arg) {
-  switch (arg) {
-    case 'show-exit-dialog': main.showDialogExit(); break;
-  }
-});
+  ipc.on('selected-image', function (event, arg, path) {
+    if(!path || path.length == 0) 
+      return;
+    if(arg.type=='chooseBackground'){
+      if(main.appSettingsBackup)
+        main.appSettingsBackup.appBackground = path[0];
+    }
+  });
+  ipc.on('selected-music', function (event, arg, path) {
+    if(!path || path.length == 0) 
+      return;
+    if(arg.type=='chooseCommandMusic'){
+      main.addMusicToHistoryList(path[0]);
+      main.setCommandMusic(arg.index, path[0]);
+    }
+    if(arg.type=='openAndPlay'){
+      main.addMusicToHistoryList(path[0]);
+      main.addPlayMusics([path[0]], {
+        musicVolume: -1,
+        musicLoopCount: -1,
+        musicTimeLimit: 0,
+        musicStartPos: 0,
+      });
+    }
+    if(arg.type=='addMusicsToHistoryList'){
+      var index = 0;
+      path.forEach(element => {
+        if(element!=''){
+          main.addMusicToHistoryList(element);
+          index++;
+        }
+      });
+      main.$message({
+        message: '成功添加 ' + index + ' 首音乐！',
+        type: 'success'
+      });
+    }
+  });
+  //主进程的ipc
+  ipc.on('main-window-act', function (event, arg) {
+    switch (arg) {
+      case 'show-exit-dialog': main.showDialogExit(); break;
+    }
+  });
+  
+}
 
 window.onerror = function(msg, url, line, col, error) {
   if(!mainAppRunning){
@@ -1875,6 +1963,7 @@ window.onerror = function(msg, url, line, col, error) {
 }
 //加载
 window.onload = function () {
+  initIpc();
   initVue();
   setTimeout(function () { hideIntro(); }, 1300);
 };

@@ -1,0 +1,134 @@
+[
+    {
+        "name": "夏令时",
+        "note": "",
+        "manualPlay": false,
+        "playing": true,
+        "enabled": true,
+        "playTime": {
+            "arr": [
+                "2001-04-30T16:00:00.000Z",
+                "2001-11-03T16:00:00.000Z"
+            ],
+            "always": false,
+            "testYear": false
+        },
+        "tables": [
+            {
+                "name": "示例时间表1",
+                "note": "",
+                "status": "notplay",
+                "enabled": true,
+                "alwaysPlay": true,
+                "playConditions": [],
+                "playedTasks": 0,
+                "tasks": [
+                    {
+                        "name": "示例任务",
+                        "note": "",
+                        "playConditions": [
+                            {
+                                "type": "时间",
+                                "datetime": "2019-08-08T02:00:00.000Z",
+                                "dateStart": null,
+                                "dateEnd": null,
+                                "weekStart": 0,
+                                "weekEnd": 0,
+                                "testYear": false,
+                                "enabled": true,
+                                "week": 1
+                            }
+                        ],
+                        "stopConditions": [],
+                        "commands": [
+                            "示例音乐.mp3"
+                        ],
+                        "enabled": true,
+                        "type": "播放音乐",
+                        "musicVolume": -1,
+                        "musicLoopCount": 0,
+                        "musicTimeLimit": {
+                            "hour": 0,
+                            "minute": 0,
+                            "second": 0
+                        },
+                        "musicStartPos": {
+                            "hour": 0,
+                            "minute": 0,
+                            "second": 0
+                        },
+                        "tid": 2,
+                        "playeError": null,
+                        "playingMid": null
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "冬令时",
+        "note": "",
+        "manualPlay": false,
+        "playing": false,
+        "enabled": true,
+        "playTime": {
+            "arr": [
+                "2001-11-04T16:00:00.000Z",
+                "2002-04-29T16:00:00.000Z"
+            ],
+            "always": false,
+            "testYear": false
+        },
+        "tables": [
+            {
+                "name": "示例时间表2",
+                "note": "",
+                "status": "notplay",
+                "enabled": true,
+                "alwaysPlay": true,
+                "playConditions": [],
+                "playedTasks": 0,
+                "tasks": [
+                    {
+                        "name": "示例任务",
+                        "note": "",
+                        "playConditions": [
+                            {
+                                "type": "时间",
+                                "datetime": "2019-08-08T02:00:00.000Z",
+                                "dateStart": null,
+                                "dateEnd": null,
+                                "weekStart": 0,
+                                "weekEnd": 0,
+                                "testYear": false,
+                                "enabled": true,
+                                "week": 1
+                            }
+                        ],
+                        "stopConditions": [],
+                        "commands": [
+                            "示例音乐.mp3"
+                        ],
+                        "enabled": true,
+                        "type": "播放音乐",
+                        "musicVolume": -1,
+                        "musicLoopCount": 0,
+                        "musicTimeLimit": {
+                            "hour": 0,
+                            "minute": 0,
+                            "second": 0
+                        },
+                        "musicStartPos": {
+                            "hour": 0,
+                            "minute": 0,
+                            "second": 0
+                        },
+                        "tid": 3,
+                        "playeError": null,
+                        "playingMid": null
+                    }
+                ]
+            }
+        ]
+    }
+]

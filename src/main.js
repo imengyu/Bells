@@ -207,5 +207,13 @@ ipc.on('main-act-window-control', function (event, arg) {
     case 'minimize': if (mainWindow) mainWindow.minimize(); break;
     case 'maximize': if (mainWindow) mainWindow.maximize(); break;
     case 'unmaximize': if (mainWindow) mainWindow.restore(); break;
+    case 'switchDevTools': {
+      if (mainWindow) {
+        if(mainWindow.webContents.isDevToolsOpened()) mainWindow.webContents.openDevTools()
+        else mainWindow.webContents.closeDevTools()
+      }
+      break;
+    }
+    case 'openProcessManager':if (mainWindow) ; break;
   }
 });

@@ -65,11 +65,15 @@ var PlayContidion = function(type, val) {
   if(this.type=='星期'){
     this.week = val;
   }else if(this.type=='星期区间'){
-    this.weekStart = val[0];
-    this.weekEnd = val[1];
+    if(val){
+      this.weekStart = val[0];
+      this.weekEnd = val[1];
+    }
   }else if(this.type=='日期区间'){
-    this.dateStart = val[0];
-    this.dateEnd = val[1];
+    if(val){
+      this.dateStart = val[0];
+      this.dateEnd = val[1];
+    }
   }else if(this.type=='日期' || this.type=='时间'){
     this.datetime = val;
   }
@@ -136,7 +140,7 @@ var PlayContidion = function(type, val) {
     }else if(this.type == '星期区间'){
       var nowDay = now.getDay();
       if(this.weekStart == this.weekEnd)
-        return nowDay == this.weekStart;
+        return true;
       if(this.weekStart < this.weekEnd)
         return this.weekStart <= nowDay && nowDay <= this.weekEnd;
       else 
@@ -158,7 +162,7 @@ var PlayContidion = function(type, val) {
         var endMonth = this.dateEnd.getMonth();
 
         if(compareMonthAndDay(startMonth, startDay, endMonth, endDay) == 0){//相等
-          return compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) == 0;
+          return true;
         }else if(compareMonthAndDay(startMonth, startDay, endMonth, endDay) == -1){//小于
           return (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0 &&
             compareMonthAndDay(nowMonth, nowDay, endMonth, endDay) <= 0)
@@ -196,6 +200,11 @@ var PlayContidion = function(type, val) {
       return this.testYear ? this.datetime.format('yyyy-MM-dd') : this.datetime.format('MM-dd');     
     }else if(this.type == '时间'){
       return this.datetime.format('HH:mm:ss');
+    }else if(this.type == '星期区间'){
+      return getWeekString(this.weekStart) + ' 至 ' + getWeekString(this.weekEnd);
+    }else if(this.type == '日期区间'){
+      return (this.testYear ? this.dateStart.format('yyyy-MM-dd') : this.dateStart.format('MM-dd'))  + ' 至 ' + 
+      (this.testYear ? this.dateEnd.format('yyyy-MM-dd') : this.dateEnd.format('MM-dd'));     
     }
     return '无效播放条件';
   }
@@ -365,7 +374,7 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
       case 'notplay': return '未播放';
       case 'disabled': return '已禁用';
       case 'played': return '已播放';
-      case 'error': return '存在错误，请查看任务属性';
+      case 'error': return '播放存在错误，详情请查看日志';
     }
     return ''
   }

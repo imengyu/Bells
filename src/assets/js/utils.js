@@ -141,6 +141,22 @@ function getFileSuffix(filename){
   return filename.substr(index+1);
 }
 
+/**
+ * 判断点击区域可编辑
+ * @param {*} e 
+ */
+function isEleEditable(e){
+  if(!e){
+      return false;
+  }
+  if(e.tagName == 'INPUT' || e.contentEditable == 'true'){
+      return true;
+  }else{
+      //递归查询父节点
+      return isEleEditable(e.parentNode)
+  }
+}
+
 /**  
  * 日期格式化（原型扩展或重载）  
  * 格式 YYYY/yyyy/ 表示年份  

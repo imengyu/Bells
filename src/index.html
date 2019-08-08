@@ -9,14 +9,23 @@
   <link rel="stylesheet" href="./lib/FontAwesome/css/font-awesome.css">
   <link rel="stylesheet" href="./lib/happy-scroll/happy-scroll.css">
   <link rel="stylesheet" href="./lib/pagewalkthrough/css/jquery.pagewalkthrough.css">
-  <link rel="stylesheet" href="./assets/css/main.css">
+  <link rel="stylesheet" href="./lib/flipcountdown/jquery.flipcountdown.css">
+  <link rel="stylesheet" href="./assets/css/main.min.css">
   <script>
+    if(typeof require == 'undefined') {
+      window.onload = function(){
+        document.getElementById('global-error-info').setAttribute('style', '');
+        document.getElementById('global-error-info-text').innerHTML = '本应用不能在浏览器中运行!<br/>App must run in Electron';
+      }
+      throw Error('本应用不能在浏览器中运行!');
+    }
     window.$ = window.jQuery = require('jquery');
   </script>
   <script src="./lib/vue/vue.js"></script>
   <script src="./lib/element/index.js"></script>
   <script src="./lib/happy-scroll/happy-scroll.min.js"></script>
   <script src="./lib/pagewalkthrough/js/jquery.pagewalkthrough.min.js"></script>
+  <script src="./lib/flipcountdown/jquery.flipcountdown.js"></script>
   <script src="./assets/js/utils.js"></script>
   <script src="./assets/js/dateutils.js"></script>
   <script src="./assets/js/workerutils.js"></script>
@@ -90,21 +99,40 @@
         </div>
       </div>
       <!--侧栏时令区-->
-      <div class="side-area">
+      <div id="side_area" class="side-area">
         <div class="side-icon icon-main"></div>
         <ul class="side-list">
-          <!--时令-->
-          <el-tooltip v-for="(item, index) in data" :key="index" class="item" effect="dark" :content="item.name"
-            placement="right">
-            <li :class="(item==currentShowSeason?'active':'') + (item.playing?' playing':'')"
-              @click="switchShowCurrentSeason(item)" @contextmenu.prevent="showMenuSeason(item)">{{item.name.substr(0,1)}}
+          <!--关于-->
+          <el-popover
+            placement="right"
+            width="200"
+            trigger="click">
+
+            <div class="p-3 text-center">
+              <h5 class="mt-0 mb-2">校园铃声自动播放系统</h5>
+              Version {{ appVesrsion }} {{ appBuildDate }} <br>
+              <i class="fa fa-copyright mr-2" aria-hidden="true"></i>2019 BY 梦欤<br>
+              <a href="javascript:;" class="mt-2" @click="editSetings('about')">关于程序</a>
+            </div>
+
+            <li slot="reference" class="bells-text">
+              BELLS
             </li>
-          </el-tooltip>
+          </el-popover>
+          <!--时令-->
+          <div id="side_top">
+            <el-tooltip v-for="(item, index) in data" :key="index" class="item" effect="dark" :content="item.name"
+              placement="right">
+              <li :class="(item==currentShowSeason?'active':'') + (item.playing?' playing':'')"
+                @click="switchShowCurrentSeason(item)" @contextmenu.prevent="showMenuSeason(item)">{{item.name.substr(0,1)}}
+              </li>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="添加时令" placement="right">
+              <li class="icon icon-side-add" @click="addSeason()"></li>
+            </el-tooltip>
+          </div>
           <!--工具按钮-->
-          <el-tooltip class="item" effect="dark" content="添加时令" placement="right">
-            <li class="icon icon-side-add" @click="addSeason()"></li>
-          </el-tooltip>
-          <div class="side-bottom" style="position: absolute; bottom: 20px;">
+          <div id="side_bottom" class="side-bottom" style="position: absolute; bottom: 20px;">
             <!--音量-->
             <el-popover
               placement="top"
@@ -127,19 +155,17 @@
         </ul>
       </div>
       <!--时间表区域-->
-      <div :class="'left-area' + (getAppBackground()?' hasBackground':'')">
+      <div id="left_area" :class="'left-area' + (getAppBackground()?' hasBackground':'')">
         <!--时钟-->
-        <div class="time-area">
-          <h1>{{ currentTime }}</h1>
-          <el-tooltip class="item" effect="dark" content="查看日期" placement="right">
-            <a href="#" @click="showDatePicker">{{currentDateStr}}</a>
-          </el-tooltip>
+        <div id="time_area" class="time-area">
+          <div id="clock"></div>
+          <a href="#" @click="showDatePicker" :title="currentDateStr">{{currentDateStr}}</a>
           <el-date-picker ref="sideDatePicker" style="opacity: 0;height: 10px;" v-model="currentDate" type="date"
             placeholder="日期查看">
           </el-date-picker>
         </div>
         <!--时间表区域-->
-        <div class="table-area">
+        <div id="table_area" class="table-area">
           <div v-if="currentShowSeason" style="height: 100%;">
             <h3>{{ currentShowSeason.name }} 的时间表</h3>
             <!--没有时间表显示-->
@@ -162,7 +188,7 @@
                   <div class="status-info">
                     <div>
                       <h4>{{ timetable.name }}</h4>
-                      <span>{{ timetable.note == '' ? getPlayConditionString(timetable.playConditions) : timetable.note }}</span>
+                      <span>{{ timetable.note == '' ? (timetable.alwaysPlay ? '永远处于播放状态' : getPlayConditionString(timetable.playConditions)) : timetable.note }}</span>
                     </div>
                   </div>
                   <div class="status-icon">
@@ -184,7 +210,7 @@
       </div>
       <!--主区域-->
       <div :class="'main-area-background' + (getAppBackground()?' hasBackground':'')"></div>
-      <div class="main-area">
+      <div id="main_area" class="main-area">
         <div class="task-area" id="task_area">
           <div v-if="currentShowTable" class="btn-area">
             <el-tooltip class="item" effect="dark" content="添加任务" placement="right">
@@ -226,20 +252,20 @@
               prop="playConditions"
               sortable
               :sort-method="mainTableSort"
-              width="126">
+              width="120">
               <template slot-scope="scope">
                 <i class="el-icon-time"></i>
-                <span class="ml-3">{{ scope.row.getPlayConditionString() }}</span>
+                <span class="ml-2">{{ scope.row.getPlayConditionString() }}</span>
               </template>
             </el-table-column>
             <el-table-column
               label="停止条件"
               sortable
               :sort-method="mainTableSort"
-              width="126">
+              width="120">
               <template slot-scope="scope">
                 <i class="el-icon-time"></i>
-                <span class="ml-3">{{ scope.row.getStopConditionString() }}</span>
+                <span class="ml-2">{{ scope.row.getStopConditionString() }}</span>
               </template>
             </el-table-column>
             <el-table-column
@@ -274,7 +300,7 @@
             <label>没有打开的列表</label>
           </div>
         </div>
-        <div v-show="musicPlayingListShow" class="music-player-area" id="music_area" v-show="!musicHistoryListShow">
+        <div v-show="musicPlayingListShow" id="music_player_area" class="music-player-area" id="music_area" v-show="!musicHistoryListShow">
           <div class="music-item">
             <el-tooltip class="item" effect="dark" content="隐藏播放控件" placement="left">
               <div class="btn-round btn-hide-ctl" @click="musicPlayingListShow=false"></div>
@@ -295,7 +321,7 @@
             <el-tooltip class="item" effect="dark" content="显示播放控件" placement="left">
               <div class="btn-round" @click="musicPlayingListShow=true"></div>
             </el-tooltip>
-          </div>
+        </div>
       </div>
 
       <!--新手引导-->
@@ -304,13 +330,13 @@
           <h3>欢迎来到校园铃声自动播放系统</h3>   
           <p>这个小帮助将会带您了解校园铃声自动播放系统的大致界面操作</p>
           <p>让我们开始吧</p>
-          <a href="javascript:;" @click="closeTour()" style="font-size: 12px">跳过新手教程</a>
+          <a href="javascript:;" onclick="main.closeTour()" style="font-size: 12px">跳过新手教程</a>
         </div>
         <div id="walkthrough-2">
           这里是时令栏，您可以在这里管理时令。
         </div>  
         <div id="walkthrough-3">
-          这里是时间表栏，每个时令可以有许多子时间表，您可以在这里添加管理时令。
+          这里是时间表栏，每个时令可以有许多子时间表，您可以在这里添加管理时间表。
         </div> 
         <div id="walkthrough-4">
           这里是时间表详细视图，您可以对时间表进行管理，或是添加、修改任务。
@@ -325,7 +351,9 @@
           这是音乐播放器，您可以在这里控制音乐的播放和进度等等。
         </div>
         <div id="walkthrough-8">
-          现在，您可以尽情使用了！
+          <h3>现在，您可以尽情使用了！</h3>
+          <p>您还可以在帮助文档中查找更多有关于软件的帮助</p>
+          <a href="javascript:;" onclick="main.showHelpWindow('')" style="font-size: 12px">打开帮助文档</a>
         </div>
       </div>
 
@@ -340,7 +368,12 @@
         </span>
       </el-dialog>
       <!--编辑时令对话框-->
-      <el-dialog :title="currentIsAddSeason?'添加时令':'编辑时令'" :visible.sync="showEditSeasonDialog" width="50%">
+      <el-dialog 
+        :title="currentIsAddSeason?'添加时令':'编辑时令'" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :visible.sync="showEditSeasonDialog" 
+        width="50%">
         <el-form v-if="currentEditSeasonBackup" ref="formEditSeason" :model="currentEditSeasonBackup" label-width="80px">
           <el-form-item label="时令名称">
             <el-input v-model="currentEditSeasonBackup.name" maxlength="6" show-word-limit></el-input>
@@ -384,7 +417,12 @@
         </span>
       </el-dialog>
       <!--编辑播放条件对话框-->
-      <el-dialog :title="currentIsAddCondition ? '添加播放条件':'编辑播放条件'" :visible.sync="showEditConditionDialog" width="60%">
+      <el-dialog 
+        :title="currentIsAddCondition ? '添加播放条件':'编辑播放条件'" 
+        :visible.sync="showEditConditionDialog" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        width="60%">
         <el-form v-if="currentEditConditionBackup" ref="formEditCondition" :model="currentEditConditionBackup" label-width="100px">
           <el-form-item label="条件与类型">
             <el-radio-group v-model="currentEditConditionBackup.type" size="medium">
@@ -410,13 +448,22 @@
               </el-tooltip>
             </div>
             <div v-else-if="currentEditConditionBackup.type=='星期区间'">
-              <el-select v-model="currentEditConditionBackup.week" style="width: 100px;" placeholder="请选择开始星期">
+              
+              <el-select v-model="currentEditConditionBackup.weekStart" style="width: 100px;" placeholder="请选择开始星期">
                 <el-option v-for="item in weekLabels" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
               &nbsp;&nbsp;至&nbsp;&nbsp;
-              <el-select v-model="currentEditConditionBackup.weekStart" style="width: 100px;" placeholder="请选择结束星期">
+              <el-select v-model="currentEditConditionBackup.weekEnd" style="width: 100px;" placeholder="请选择结束星期">
                 <el-option v-for="item in weekLabels" :key="item.value" :label="item.label" :value="item.value"></el-option>
               </el-select>
+
+              <span 
+                v-if="currentEditConditionBackup.weekStart==currentEditConditionBackup.weekEnd" 
+                style="color: #db9411">
+                <i class="fa fa-exclamation-triangle mr-2"></i> 
+                您设置了两个相同的星期，这意味着该条件永远成立。
+              </span>
+
             </div>
             <div v-else-if="currentEditConditionBackup.type=='日期区间'">
 
@@ -435,6 +482,13 @@
                 style="width: 150px;"
                 :format="currentEditConditionBackup.testYear ? 'yyyy-MM-dd' : 'MM-dd'">
               </el-date-picker>
+
+              <span 
+                v-if="currentEditConditionBackup.dateStart==currentEditConditionBackup.dateEnd" 
+                style="color: #db9411">
+                <i class="fa fa-exclamation-triangle mr-2"></i> 
+                您设置了两个相同的时间，这意味着该条件永远成立。
+              </span>
 
               <br/>
               <el-tooltip class="item" effect="dark" content="是否限制年份，如果不限制年份则以月份为条件" placement="top">
@@ -458,21 +512,31 @@
         </span>
       </el-dialog>
       <!--编辑时间表对话框-->
-      <el-dialog :title="currentIsAddTable ?'添加时间表':'编辑时间表'" :visible.sync="showEditTableDialog" width="70%">
+      <el-dialog 
+        :title="currentIsAddTable ?'添加时间表':'编辑时间表'"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false" 
+        :visible.sync="showEditTableDialog" width="70%">
         <el-form v-if="currentEditTableBackup" ref="formEditTable" :model="currentEditTableBackup" label-width="100px">
           <el-form-item label="时间表名称">
             <el-input v-model="currentEditTableBackup.name" maxlength="10" show-word-limit></el-input>
           </el-form-item>
           <el-form-item label="播放条件">
-            <div v-for="(item, index) in currentEditTableBackup.playConditions" class="com-item">
-              <el-switch v-model="item.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
-              <span>{{ item.getFriendlyString() }}</span>
-              <el-button type="danger" class="btn" icon="el-icon-delete" @click="deleteCondition(item)" circle></el-button>
-              <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTableBackup.playConditions, ['日期','星期','星期区间','日期区间'])" circle></el-button>
+            使时间表永远处于播放状态：<el-switch v-model="currentEditTableBackup.alwaysPlay" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+            <div v-if="currentEditTableBackup.alwaysPlay" class="mt-2 mb-3 text-secondary">
+              当前时间表在任何时间都为播放状态
             </div>
-            <el-tooltip class="item" effect="dark" content="添加播放条件" placement="right">
-              <div class="btn-add round" @click="addCondition(currentEditTableBackup, currentEditTableBackup.playConditions, ['日期','星期','星期区间','日期区间'])"></div>
-            </el-tooltip>
+            <div v-else>
+              <div v-for="(item, index) in currentEditTableBackup.playConditions" class="com-item">
+                <el-switch v-model="item.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+                <span>{{ item.getFriendlyString() }}</span>
+                <el-button type="danger" class="btn" icon="el-icon-delete" @click="deleteCondition(item)" circle></el-button>
+                <el-button type="primary" class="btn" icon="el-icon-edit" @click="editCondition(item, currentEditTableBackup.playConditions, ['日期','星期','星期区间','日期区间'])" circle></el-button>
+              </div>
+              <el-tooltip class="item" effect="dark" content="添加播放条件" placement="right">
+                <div class="btn-add round" @click="addCondition(currentEditTableBackup, currentEditTableBackup.playConditions, ['日期','星期','星期区间','日期区间'])"></div>
+              </el-tooltip>
+            </div>
           </el-form-item>
           <el-form-item label="时间表备注">
             <el-input type="textarea" v-model="currentEditTableBackup.note"></el-input>
@@ -487,7 +551,12 @@
         </span>
       </el-dialog>
       <!--编辑任务对话框-->
-      <el-dialog :title="currentIsAddTask ?'添加任务':'编辑任务'" :visible.sync="showEditTaskDialog" width="70%">
+      <el-dialog 
+        :title="currentIsAddTask ?'添加任务':'编辑任务'" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :visible.sync="showEditTaskDialog" 
+        width="70%">
         <el-form v-if="currentEditTaskBackup" ref="formEditTask" :model="currentEditTaskBackup" label-width="100px">
           <el-form-item label="任务名称">
             <el-input v-model="currentEditTaskBackup.name" maxlength="10" show-word-limit></el-input>
@@ -610,7 +679,11 @@
         </span>
       </el-dialog>
       <!--关机对话框-->
-      <el-dialog title="关机前准备" :visible.sync="showShutdownDialog" width="40%">
+      <el-dialog title="关机前准备" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :visible.sync="showShutdownDialog" 
+        width="40%">
         定时关机任务已启动，系统将在 <span class="text-important">{{ shutdownTick }}</span> 秒后关机。<br/>
         在关闭计算机前请保存您的工作，或者您可以选择立即关机/取消关机。
         <span slot="footer" class="dialog-footer">
@@ -619,8 +692,11 @@
         </span>
       </el-dialog>
       <!--设置管理员密码对话框-->
-      <el-dialog :title="currentIsAddManagerPassword ? '添加管理员密码' : '设置管理员密码'" :visible.sync="showEditManagerPasswordDialog" width="50%">
-        
+      <el-dialog :title="currentIsAddManagerPassword ? '添加管理员密码' : '设置管理员密码'" 
+        :visible.sync="showEditManagerPasswordDialog" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false" 
+        width="50%">
         <el-form ref="formPassword" :rules="currentIsAddManagerPassword ? managerPasswordAddRules : managerPasswordChangeRules" :model="managerPasswordEditor" label-width="80px">
           <el-form-item v-if="!currentIsAddManagerPassword" label="旧密码" prop="old">
             <el-input v-model="managerPasswordEditor.old" placeholder="请输入旧密码" show-password></el-input>
@@ -641,7 +717,11 @@
         </span>
       </el-dialog>
       <!--设置对话框-->
-      <el-dialog title="软件设置" :visible.sync="showSettingsDialog" width="70%">
+      <el-dialog title="软件设置" 
+        :visible.sync="showSettingsDialog" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false" 
+        width="70%">
 
         <el-tabs v-model="settingsActiveTab" v-if="appSettingsBackup" style="margin-top: -25px;">
           <el-tab-pane label="全局" name="general">
@@ -766,7 +846,7 @@
                 编译日期 <br />
               </div>
               <div style="display: inline-block; width: 200px; text-align: left; padding-left: 5px">
-                <span class="text-important">{{ appVesrsion }}</span><br />
+                <span class="text-important" @click="toggleDeveloperMode">{{ appVesrsion }}</span><br />
                 <span class="text-important">{{ appBuildDate }}</span><br />
               </div>
             </div>
