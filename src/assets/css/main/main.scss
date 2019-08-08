@@ -591,7 +591,7 @@ $list-area-width: 275px;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 50px;
+    bottom: 100px;
     justify-content: center;
     align-items: center;
     flex-direction: column;
@@ -1026,4 +1026,12 @@ $list-area-width: 275px;
     
   }
 
+}
+
+#jpWalkthrough {
+  left: 15px;
+  top: 20px;
+  bottom: 20px;
+  right: 15px;
+  border-radius: 20px;
 }

@@ -1,7 +1,7 @@
 if(typeof require == 'undefined') {
   window.onload = function(){
-    document.getElementById('global-error-info').setAttribute('style','');
-    document.getElementById('global-error-info-text').innerText = '当前应用不能在浏览器中运行!';
+    $('#global-error-info').prop('style','');
+    $('#global-error-info-text').text('当前应用不能在浏览器中运行!');
   }
   throw Error('当前应用不能在浏览器中运行!');
 }
@@ -153,6 +153,9 @@ function initVue() {
         /** 全局数据入口 */
         data:[],
         dataLastSaveDate: null,
+        dataTour: [
+
+        ],
 
         /** 全局时钟 */
         timeNow: null,
@@ -554,7 +557,9 @@ function initVue() {
         this.menuSettings.append(new MenuItem({ label: '查看日志', click: () => { this.showLogDialog =true;this.showLog(0); } }));
         this.menuSettings.append(new MenuItem({ label: '手动保存数据', click: () => { this.saveAndReloadData(); } }));
         this.menuSettings.append(new MenuItem({ label: 'Test1', click: () => { this.showFirstView(); } }));
+        this.menuSettings.append(new MenuItem({ label: 'Test2', click: () => { this.runTour(); } }));
 
+        
         var powerSubMenu = new Menu();
         powerSubMenu.append(new MenuItem({ label: '关闭计算机', click: () => { this.shutdownByUser(); } }));
         powerSubMenu.append(new MenuItem({ label: '重启计算机', click: () => { this.rebootByUser(); } }));
@@ -874,7 +879,27 @@ function initVue() {
         this.runTour();
       },
       runTour(){
-
+        //load data for tour
+        this.data = this.dataTour;
+        // Show the tour
+        $('#walkthrough-content').prop('style','');
+        $('body').pagewalkthrough({
+          name: 'introduction',
+          steps: [
+          { popup: {content: '#walkthrough-1', type: 'modal' }
+          }, {wrapper: '.side-area',popup: {content: '#walkthrough-2', type: 'tooltip',position: 'right'}
+          }, {wrapper: '.left-area',popup: {content: '#walkthrough-3', type: 'tooltip',position: 'right'}
+          }, {wrapper: '.main-area',popup: {content: '#walkthrough-4', type: 'tooltip',position: 'bottom'}
+          }, {wrapper: '.side-bottom',popup: {content: '#walkthrough-5', type: 'tooltip',position: 'right'}
+          }, {wrapper: '#btn-help',popup: {content: '#walkthrough-6', type: 'tooltip',position: 'right'}
+          }, {wrapper: '.music-player-area',popup: {content: '#walkthrough-7', type: 'tooltip',position: 'left'}
+          }, { popup: {content: '#walkthrough-8', type: 'modal' }
+          }]
+        });
+        $('body').pagewalkthrough('show');
+      },
+      closeTour(){
+        $('body').pagewalkthrough('HIDE');
       },
 
       /*状态控制 */
@@ -958,6 +983,7 @@ function initVue() {
             if (valid) {
               if(this.currentIsAddManagerPassword){
                 this.appSettingsBackup.managerPassword = this.managerPasswordEditor.new;
+                this.appSettings.managerPassword = this.managerPasswordEditor.new;
                 this.managerPasswordEditor.old = '';
                 this.managerPasswordEditor.new = '';
                 this.managerPasswordEditor.newCheck = '';
@@ -968,6 +994,7 @@ function initVue() {
               }else {
                 if(this.appSettingsBackup.managerPassword == this.managerPasswordEditor.old){
                   this.appSettingsBackup.managerPassword = this.managerPasswordEditor.new;
+                  this.appSettings.managerPassword = this.managerPasswordEditor.new;
                   this.managerPasswordEditor.old = '';
                   this.managerPasswordEditor.new = '';
                   this.managerPasswordEditor.newCheck = '';
@@ -989,6 +1016,36 @@ function initVue() {
             }
           });
         }else this.showEditManagerPasswordDialog = false;
+      },
+      clearManagerPassword(){
+        this.$confirm('您真的要删除已设置的管理员密码? 删除管理员密码以后将不能使用安全功能！', '提示', {
+          confirmButtonText: '删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$prompt('请输入原密码', '提示', {
+            inputType: 'password',
+            inputValidator: function(t){
+              if(t=='')return '请输入密码'
+              else if(t.length < 6)return '密码长度必须大于等于 6 位'
+              return true
+            },
+            confirmButtonText: '确定删除',
+            cancelButtonText: '取消',
+          }).then(({ value }) => {
+            if(value == this.appSettings.managerPassword){
+              this.appSettings.managerPassword = '';
+              this.appSettingsBackup.managerPassword = '';
+              this.$message({
+                type: 'success',
+                message: '删除管理员密码成功！ '
+              });
+            }else {
+              this.$alert('管理员密码不正确', '修改密码提示', { type: 'error' })
+              this.log('在清除管理员密码时验证登录密码错误', { modulname: '安全控制' })
+            }
+          }).catch(() => {});
+        }).catch(() => {});
       },
       editSetings(tab){
         this.settingsActiveTab = tab;
@@ -1643,11 +1700,23 @@ function initVue() {
           this.log('取消关机计划', { modulname: '自动执行器' })
         }
       },
-      exit() { 
-        bellsWin32.setPowerStateEnable(false);
+      exit() {        
+        this.showExitDialog = false;
+
+        const loading = this.$loading({
+          lock: true,
+          text: '正在保存数据，请稍后',
+          spinner: 'el-icon-loading',
+          background: 'rgba(255, 255, 255, 0.8)'
+        });
         this.stopTimer();
         this.saveAllData();
-        ipc.send('main-act-quit', ''); 
+
+        setTimeout(function(){
+          loading.close();
+          bellsWin32.setPowerStateEnable(false);
+          ipc.send('main-act-quit', ''); 
+        }, 1500);
       },
       getPlayConditionString(playConditions) {
         var str = '';

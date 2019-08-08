@@ -8,10 +8,15 @@
   <link rel="stylesheet" href="./lib/element/index.css">
   <link rel="stylesheet" href="./lib/FontAwesome/css/font-awesome.css">
   <link rel="stylesheet" href="./lib/happy-scroll/happy-scroll.css">
+  <link rel="stylesheet" href="./lib/pagewalkthrough/css/jquery.pagewalkthrough.css">
   <link rel="stylesheet" href="./assets/css/main.css">
+  <script>
+    window.$ = window.jQuery = require('jquery');
+  </script>
   <script src="./lib/vue/vue.js"></script>
   <script src="./lib/element/index.js"></script>
   <script src="./lib/happy-scroll/happy-scroll.min.js"></script>
+  <script src="./lib/pagewalkthrough/js/jquery.pagewalkthrough.min.js"></script>
   <script src="./assets/js/utils.js"></script>
   <script src="./assets/js/dateutils.js"></script>
   <script src="./assets/js/workerutils.js"></script>
@@ -99,24 +104,26 @@
           <el-tooltip class="item" effect="dark" content="添加时令" placement="right">
             <li class="icon icon-side-add" @click="addSeason()"></li>
           </el-tooltip>
-          <!--音量-->
-          <el-popover
-            placement="top"
-            trigger="click">
-            <el-slider 
-              v-model="playingMusicVolume"
-              vertical
-              height="130px"
-              ></el-slider>
-            <li slot="reference"  :class="'icon ' + (playingMusicVolume &gt; 0 ? 'icon-side-voice' : 'icon-side-muted')" 
-              style="position: absolute; bottom: 120px;-webkit-mask-size: 26px;-webkit-mask-position-x: 18px;"></li>
-          </el-popover>
-          <el-tooltip class="item" effect="dark" content="帮助文档" placement="right">
-            <li class="icon icon-side-help" @click="showHelpWindow('')" style="position: absolute; bottom: 70px;"></li>
-          </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="软件设置" placement="right">
-            <li class="icon icon-side-cfg" @click="showMenuSettings" style="position: absolute; bottom: 20px;"></li>
-          </el-tooltip>
+          <div class="side-bottom" style="position: absolute; bottom: 20px;">
+            <!--音量-->
+            <el-popover
+              placement="top"
+              trigger="click">
+              <el-slider 
+                v-model="playingMusicVolume"
+                vertical
+                height="130px"
+                ></el-slider>
+              <li slot="reference"  :class="'icon ' + (playingMusicVolume &gt; 0 ? 'icon-side-voice' : 'icon-side-muted')" 
+                style="-webkit-mask-size: 26px;-webkit-mask-position-x: 18px;"></li>
+            </el-popover>
+            <el-tooltip class="item" effect="dark" content="帮助文档" placement="right">
+              <li id="btn-help" class="icon icon-side-help" @click="showHelpWindow('')"></li>
+            </el-tooltip>
+            <el-tooltip class="item" effect="dark" content="软件设置" placement="right">
+              <li class="icon icon-side-cfg" @click="showMenuSettings"></li>
+            </el-tooltip>
+          </div>
         </ul>
       </div>
       <!--时间表区域-->
@@ -289,6 +296,37 @@
               <div class="btn-round" @click="musicPlayingListShow=true"></div>
             </el-tooltip>
           </div>
+      </div>
+
+      <!--新手引导-->
+      <div id="walkthrough-content" style="display:none">
+        <div id="walkthrough-1">
+          <h3>欢迎来到校园铃声自动播放系统</h3>   
+          <p>这个小帮助将会带您了解校园铃声自动播放系统的大致界面操作</p>
+          <p>让我们开始吧</p>
+          <a href="javascript:;" @click="closeTour()" style="font-size: 12px">跳过新手教程</a>
+        </div>
+        <div id="walkthrough-2">
+          这里是时令栏，您可以在这里管理时令。
+        </div>  
+        <div id="walkthrough-3">
+          这里是时间表栏，每个时令可以有许多子时间表，您可以在这里添加管理时令。
+        </div> 
+        <div id="walkthrough-4">
+          这里是时间表详细视图，您可以对时间表进行管理，或是添加、修改任务。
+        </div> 
+        <div id="walkthrough-5">
+          这里是系统设置、音量调整菜单。
+        </div>
+        <div id="walkthrough-6">
+          点击这里可以打开帮助文档哦！
+        </div>
+        <div id="walkthrough-7">
+          这是音乐播放器，您可以在这里控制音乐的播放和进度等等。
+        </div>
+        <div id="walkthrough-8">
+          现在，您可以尽情使用了！
+        </div>
       </div>
 
       <!--对话框-->
@@ -633,6 +671,7 @@
                 <el-input laceholder="输入背景图片文件的路径" v-model="appSettingsBackup.appBackground">
                   <template slot="append">
                     <el-button size="mini" icon="el-icon-folder" @click="chooseImage({type:'chooseBackground'})">选择文件</el-button>
+                    <el-button size="mini" icon="el-icon-delete" @click="appSettingsBackup.appBackground=''" title="清空背景"></el-button>
                   </template>
                 </el-input>
               </el-form-item>
@@ -651,8 +690,11 @@
               :active-text="(!appSettingsBackup.managerPassword || appSettingsBackup.managerPassword=='')?'您未设置管理员密码，无法开启保护':'保护已开启'">
             </el-switch>
             <el-button v-if="(!appSettingsBackup.managerPassword || appSettingsBackup.managerPassword=='')" class="float-right" @click="editManagerPassword(true)" type="primary"  round>设置管理员密码</el-button>
-            <el-button v-else type="primary" @click="editManagerPassword(false)" class="float-right" round>修改管理员密码</el-button>
-            
+            <div v-else>
+              <el-button @click="clearManagerPassword()" class="float-right ml-2" round>清除管理员密码</el-button>
+              <el-button type="primary" @click="editManagerPassword(false)" class="float-right" round>修改管理员密码</el-button>
+            </div>
+
             <h4 class="m-0 mt-3">本软件长时间无操作时自动锁定</h4>
             <el-switch v-model="appSettingsBackup.autoLock" style="margin: 10px 0;"></el-switch>
             <br/>超时时间：<el-input-number v-model="appSettingsBackup.autoLockMaxMinute" size="small" style="width:90px" controls-position="right" :min="1" :max="60"></el-input-number> 分钟

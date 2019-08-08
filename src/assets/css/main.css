@@ -1754,4 +1754,6 @@ a:hover, a:active { color: #2b67e7; text-decoration: none; }
 .into-item { text-align: center; }
 
 .into-item img { max-width: 300px; height: auto; margin-top: 20px; }
+
+#jpWalkthrough { left: 15px; top: 20px; bottom: 20px; right: 15px; border-radius: 20px; }
 /*# sourceMappingURL=main.css.map */
