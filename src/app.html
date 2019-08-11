@@ -4,36 +4,13 @@
 <head>
   <title>校园铃声自动播放系统</title>
   <meta charset="UTF-8">
-
-  <link rel="stylesheet" href="./lib/element/index.css">
-  <link rel="stylesheet" href="./lib/FontAwesome/css/font-awesome.css">
-  <link rel="stylesheet" href="./lib/happy-scroll/happy-scroll.css">
-  <link rel="stylesheet" href="./lib/pagewalkthrough/css/jquery.pagewalkthrough.css">
-  <link rel="stylesheet" href="./lib/flipcountdown/jquery.flipcountdown.css">
-  <link rel="stylesheet" href="./assets/css/main.min.css">
-  <script>
-    if(typeof require == 'undefined') {
-      window.onload = function(){
-        document.getElementById('global-error-info').setAttribute('style', '');
-        document.getElementById('global-error-info-text').innerHTML = '本应用不能在浏览器中运行!<br/>App must run in Electron';
-      }
-      throw Error('本应用不能在浏览器中运行!');
-    }
-    window.$ = window.jQuery = require('jquery');
-  </script>
-  <script src="./lib/vue/vue.js"></script>
-  <script src="./lib/element/index.js"></script>
-  <script src="./lib/happy-scroll/happy-scroll.min.js"></script>
-  <script src="./lib/pagewalkthrough/js/jquery.pagewalkthrough.min.js"></script>
-  <script src="./lib/flipcountdown/jquery.flipcountdown.js"></script>
-  <script src="./assets/js/utils.js"></script>
-  <script src="./assets/js/dateutils.js"></script>
-  <script src="./assets/js/workerutils.js"></script>
-  <script src="./render.js"></script>
 </head>
 
 <body>
-  <div class="window">
+  <div id="first-loading" class="first-loading">
+    正在初始化，请稍后
+  </div>
+  <div id="main-window" class="window" style="display:none">
     <!--窗口拖动-->
     <div class="header">
       <div class="left-drag"></div>
@@ -41,7 +18,7 @@
     </div>
     <!--进入遮罩-->
     <div id="intro" class="intro">
-      <img src="./assets/images/logo.ico" />
+      <img src="assets/images/logo128.png" />
       <h3>校园铃声自动播放系统</h3>
     </div>
     <!--错误区域-->
@@ -159,10 +136,7 @@
         <!--时钟-->
         <div id="time_area" class="time-area">
           <div id="clock"></div>
-          <a href="#" @click="showDatePicker" :title="currentDateStr">{{currentDateStr}}</a>
-          <el-date-picker ref="sideDatePicker" style="opacity: 0;height: 10px;" v-model="currentDate" type="date"
-            placeholder="日期查看">
-          </el-date-picker>
+          <a href="#" @click="showCalendarDialog=true;loadBaiduCalender()" :title="currentDateStr">{{currentDateStr}}</a>
         </div>
         <!--时间表区域-->
         <div id="table_area" class="table-area">
@@ -212,32 +186,30 @@
       <div :class="'main-area-background' + (getAppBackground()?' hasBackground':'')"></div>
       <div id="main_area" class="main-area">
         <div class="task-area" id="task_area">
-          <div v-if="currentShowTable" class="btn-area">
+          <div v-if="currentShowData" class="btn-area">
             <el-tooltip class="item" effect="dark" content="添加任务" placement="right">
               <div class="btn-round btn-icon-add" @click="addTask()"></div>
             </el-tooltip>
             <el-tooltip class="item" effect="dark" content="设置时间表属性" placement="right">
               <div class="btn-round btn-icon-cfg" @click="currentEditTable=currentShowTable;editTable()"></div>
             </el-tooltip>
-          </div>
-          <div v-if="currentShowTable && currentShowTable.tasks.length > 0" class="info-area">
+          </div>         
+          <div v-if="currentShowData && currentShowData.length > 0" class="info-area">
             当前列表共有 <span class="text-important">{{ currentShowTable.tasks.length }}</span> 条任务，
             已播放 <span class="text-important">{{ currentShowTable.playedTasks }}</span> 条。
           </div>
-          <el-table
-            v-if="currentShowTable && currentShowTable.tasks.length > 0"
+          <el-table v-if="currentShowData && currentShowData.length > 0"
             :height="mainTableHeight"
-            :data="currentShowTable.tasks"
+            :data="currentShowData"
             :default-sort="{ prop: 'playConditions' }"
             @row-contextmenu="mainListItemRightClick"
-            @row-dblclick="mainListItemDoubleClick"
-            style="width: 100%;height: 100%;">
+            @row-dblclick="mainListItemDoubleClick">
             <el-table-column
               label="状态"
               width="50">
               <template slot-scope="scope">
                 <el-tooltip class="item" effect="dark" 
-                  :content="scope.row.getStatusString()" placement="right">
+                  :content="scope.row.getStatusString()" placement="left">
                   <div class="task-status" :data-status="scope.row.status"></div>
                 </el-tooltip>
               </template>
@@ -292,7 +264,7 @@
               </template>
             </el-table-column>
           </el-table>
-          <div v-else-if="currentShowTable" class="none-area">
+          <div v-else-if="currentShowData" class="none-area">
             <label>当前时间表没有任务，您可以添加任务</label>
             <el-button class="mt-3" type="primary" @click="addTask()" round>添加任务</el-button>
           </div>
@@ -908,6 +880,12 @@
                 <el-form-item label="所属模块">
                   <span>{{ props.row.modulname }}</span>
                 </el-form-item>
+                <el-form-item label="所属时令">
+                  <span>{{ props.row.season }}</span>
+                </el-form-item>
+                <el-form-item label="所属时间表">
+                  <span>{{ props.row.table }}</span>
+                </el-form-item>
                 <el-form-item label="文件与行号">
                   <span>{{ props.row.fileline }}</span>
                 </el-form-item>
@@ -977,6 +955,12 @@
         </el-carousel>
         <div class="bg"></div>
       </el-dialog>
+      <!--日历-->
+      <el-dialog :visible.sync="showCalendarDialog" title="日历" width="580px" v-loading="calendarLoading" class="calendar-dialog">
+        <div id="baidu-calendar-outer" style="width:538px;height:370px;position:relative;">
+          <iframe id="baidu-calendar" style="border: none;" scrolling="no" width="538px" height="370px"></iframe>
+        </div>
+      </el-dialog>
 
       <!--侧栏音乐列表-->
       <el-drawer
@@ -1006,6 +990,35 @@
       </el-drawer>
     </div>
   </div>
+  <style>
+    .first-loading {
+      display: inline-block;
+      width: 180px;
+      height: 60px;
+      text-align: center;
+      line-height: 60px;
+      position: absolute;
+      left: calc(50% - 90px);
+      top: calc(50% - 30px);
+      border-radius: 20px;
+      background-color: #fff;
+      box-shadow: rgba(0,0,0,.2) 0px 2px 10px 5px;
+    }
+  </style>
+  <script>
+    if(typeof require == 'undefined') {
+      window.onload = function(){
+        document.getElementById('first-loading').setAttribute('style', 'display:none');
+        document.getElementById('main-window').setAttribute('style', '');
+        document.getElementById('global-error-info').setAttribute('style', '');
+        document.getElementById('global-error-info-text').innerText = '本应用不能在浏览器中运行!';
+      }
+      throw Error('本应用不能在浏览器中运行! App must run in Electron');
+    }
+    var main = null;
+    /*Load native mode*/
+    const bellsWin32 = require('./app.node')
+  </script>
 </body>
 
 </html>

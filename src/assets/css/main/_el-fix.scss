@@ -63,6 +63,13 @@
     width: 50%;
   }
 }
+.el-loading-mask.is-fullscreen {
+  left: 15px;
+  top: 20px;
+  bottom: 20px;
+  right: 15px;
+  border-radius: 20px;
+}
 
 .main-area {
 
@@ -76,4 +83,8 @@
     }
   }
 
+}
+
+.calendar-dialog .el-dialog__body {
+  padding: 5px 20px 20px 20px;
 }

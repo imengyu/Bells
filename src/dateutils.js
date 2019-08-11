@@ -1,3 +1,7 @@
+export default {
+  getFestival,
+  getLunarDay
+}
 
 function getFestival(){
   var str = '';
@@ -105,7 +109,7 @@ function GetcDateString() {
   return tmp;
 }
 
-function GetLunarDay(solarYear, solarMonth, solarDay) {
+function getLunarDay(solarYear, solarMonth, solarDay) {
   //solarYear = solarYear<1900?(1900+solarYear):solarYear;  
   if (solarYear < 1921 || solarYear > 2020) {
     return "";

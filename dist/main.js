@@ -28,10 +28,12 @@ function createWindow () {
     maximizable: false,
     fullscreen: false,
     show: false,
-    icon: path.join(__dirname, '/assets/images/logo.ico'),
+    icon: path.join(__dirname, 'app.ico'),
     webPreferences: {
       webSecurity: false,
-      nodeIntegration: true
+      nodeIntegration: true,
+      disableBlinkFeatures: "",
+      
     },
   })
   mainWindow.setMenu(null)
@@ -76,7 +78,7 @@ function createWindow () {
   ];
   const contextMenu = Menu.buildFromTemplate(trayMenuTemplate);
 
-  appTray = new Tray(path.join(__dirname, 'assets/images/logo.ico'));
+  appTray = new Tray(path.join(__dirname, 'app.ico'));
   appTray.setToolTip('铃声自动播放系统');
   appTray.setContextMenu(contextMenu);
   appTray.on('click',function(){
@@ -94,14 +96,14 @@ function createAndShowHelpWindow(anchorPos) {
       height: 660,
       frame: true,
       show: false,
-      icon: path.join(__dirname, '/assets/images/logo.ico'),
+      icon: path.join(__dirname, 'app.ico'),
       webPreferences: {
         webSecurity: false,
-        nodeIntegration: false
+        nodeIntegration: true
       },
     })
     helpWindow.setMenu(null)
-    helpWindow.loadURL(`file:///${__dirname}/docs/index.html${anchorPos}`);
+    helpWindow.loadURL(`file:///${__dirname}/pages/docs/index.html${anchorPos}`);
     helpWindow.webContents.openDevTools();
     helpWindow.on('closed', function () {
       helpWindow = null
@@ -110,7 +112,7 @@ function createAndShowHelpWindow(anchorPos) {
       helpWindow.show()
     })
   }else{
-    helpWindow.loadURL(`file:///${__dirname}/docs/index.html${anchorPos}`);
+    helpWindow.loadURL(`file:///${__dirname}/pages/docs/index.html${anchorPos}`);
     helpWindow.show();
     helpWindow.focus();
   }

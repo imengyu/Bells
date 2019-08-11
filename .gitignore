@@ -6,5 +6,5 @@ node_modules/
 .vs/
 /src/node_modules/
 /native/build/
-/dist/
+/dist/app/
 package-lock.json

@@ -1,3 +1,20 @@
+export default {
+  getWeekString,
+  prefixInteger,
+  clone,
+  cloneValue,
+  cloneValueForce,
+  mergeJSON,
+  mergeJsonArray,
+  isNullOrEmpty,
+  isBase64,
+  isNumber,
+  getFileSuffix,
+  isEleEditable,
+}
+
+
+
 var weekStr = ['日','一','二','三','四','五','六']
 
 function getWeekString(i){
@@ -124,18 +141,6 @@ function isNumber(val) {
     return false;
   }
 }
-/**
- * 数字补0
- */
-function pad(num, n) {
-  var len = num.toString().length;
-  while (len < n) {
-    num = "0" + num;
-    len++;
-  }
-  return num;
-}
-
 function getFileSuffix(filename){
   var index = filename.lastIndexOf(".");
   return filename.substr(index+1);
@@ -155,27 +160,4 @@ function isEleEditable(e){
       //递归查询父节点
       return isEleEditable(e.parentNode)
   }
-}
-
-/**  
- * 日期格式化（原型扩展或重载）  
- * 格式 YYYY/yyyy/ 表示年份  
- * MM/M 月份  
- * dd/DD/d/D 日期  
- * @param {formatStr} 格式模版  
- * @type string  
- * @returns 日期字符串  
- */
-Date.prototype.format = function (formatStr) {
-  var str = formatStr;
-  //var Week = ['日','一','二','三','四','五','六'];   
-  str = str.replace(/yyyy|YYYY/, this.getFullYear());
-  str = str.replace(/MM/, pad(this.getMonth() + 1, 2));
-  str = str.replace(/dd|DD/, pad(this.getDate(), 2));
-  str = str.replace(/HH/, pad(this.getHours(), 2));
-  str = str.replace(/hh/, pad(this.getHours() > 12 ? this.getHours() - 12 : this.getHours(), 2));
-  str = str.replace(/mm/, pad(this.getMinutes(), 2));
-  str = str.replace(/ii/, pad(this.getMinutes(), 2));
-  str = str.replace(/ss/, pad(this.getSeconds(), 2));
-  return str;
 }

@@ -131,6 +131,28 @@
   </div>
   <script src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/prettify/prettify.js"></script>
+  <script>
+    /*Add right menu for electron */
+    var menuCopy = null;
+    var remote = null;
+
+    if (typeof require != 'undefined') {
+      window.$ = window.jQuery = require('jquery');
+      const electron = require("electron");
+      remote = electron.remote;
+      const Menu = remote.Menu;
+      const MenuItem = remote.MenuItem;
+      menuCopy = new Menu();
+      menuCopy.append(new MenuItem({ label: '复制', role: 'copy' }));
+      menuCopy.append(new MenuItem({ label: '全选', role: 'selectall' }));
+    }
+    window.addEventListener('contextmenu', function (e) {
+      if (menuCopy) {
+        e.preventDefault();
+        menuCopy.popup(remote.getCurrentWindow());
+      }
+    }, false);
+  </script>
   <script src="js/layout.js"></script>
 </body>
 

@@ -48,7 +48,7 @@ body{
   right: 15px;
   border-radius: 20px;
   background-color: #fff;
-  box-shadow: rgba(0,0,0,.1) 0px 6px 10px 5px;
+  box-shadow: rgba(0,0,0,.2) 0px 2px 10px 5px;
   overflow: hidden;
 }
 
@@ -206,9 +206,9 @@ $list-area-width: 275px;
       }
       &.icon{
 
-        mask-size: 28px;
-        mask-repeat: no-repeat;
-        mask-position: center center;
+        -webkit-mask-size: 28px;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center center;
         background-color: #b6b6b6;
 
         &:hover {
@@ -299,7 +299,7 @@ $list-area-width: 275px;
       font-size: 12px;
       padding-left: 8px;
       position: absolute;
-      top: 47px;
+      top: 44px;
       z-index: 1;
     }
     .el-table {
@@ -1029,7 +1029,7 @@ $list-area-width: 275px;
     right: 0;
     height: 120px;
     z-index: 0;
-    background-image: url(../images/into/bg.jpg);
+    background-image: url(../../images/into/bg.jpg);
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
   }

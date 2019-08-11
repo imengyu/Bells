@@ -1,4 +1,4 @@
-
+import Utils from './utils'
 
 /**
  * 播放日期条件
@@ -321,7 +321,7 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
     this.playConditions.forEach(element => { newVplayConditions.push(element.clone()); });
     this.stopConditions.forEach(element => { newVstopConditions.push(element.clone()); });
     var newV = new PlayTask(this.name, this.note, 
-      clone(this.commands), newVplayConditions, newVstopConditions);
+      Utils.clone(this.commands), newVplayConditions, newVstopConditions);
     this.enabled = this.enabled;
     this.type = this.type;
     this.musicVolume = this.musicVolume;
@@ -400,4 +400,10 @@ PlayTask.fromJsonObject = function(json){
   newV.musicTimeLimit = json.musicStartPos;
   newV.musicStartPos = json.musicStartPos;
   return newV
+}
+
+export default {
+  PlayDate,
+  PlayContidion,
+  PlayTask
 }

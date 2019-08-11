@@ -35,7 +35,7 @@
   overflow: visible;
 }
 #jpWalkthrough #jpwTooltip #bottom-scratch {
-  background: url("images/scratch-border.png") no-repeat left top;
+  background: url("./images/scratch-border.png") no-repeat left top;
   width: 358px;
   height: 42px;
   display: block;
@@ -49,11 +49,11 @@
   position: absolute;
   top: -35px;
   right: -30px;
-  background: url("images/drag.png") no-repeat;
+  background: url("./images/drag.png") no-repeat;
   z-index: 10000;
 }
 #jpWalkthrough #jpwTooltip .top {
-  background: url("images/arrow-bottom.png") no-repeat scroll 0 0 transparent;
+  background: url("./images/arrow-bottom.png") no-repeat scroll 0 0 transparent;
   bottom: -86px;
   height: 86px;
   left: 130px;
@@ -63,7 +63,7 @@
   z-index: 1000;
 }
 #jpWalkthrough #jpwTooltip .right {
-  background: url("images/arrow-left.png") no-repeat scroll 0 0 transparent;
+  background: url("./images/arrow-left.png") no-repeat scroll 0 0 transparent;
   height: 56px;
   left: -105px;
   position: absolute;
@@ -73,7 +73,7 @@
   z-index: 1000;
 }
 #jpWalkthrough #jpwTooltip .bottom {
-  background: url("images/arrow-top.png") no-repeat scroll 0 0 transparent;
+  background: url("./images/arrow-top.png") no-repeat scroll 0 0 transparent;
   height: 86px;
   left: 130px;
   position: absolute;
@@ -83,7 +83,7 @@
   z-index: 1000;
 }
 #jpWalkthrough #jpwTooltip .left {
-  background: url("images/arrow-right.png") no-repeat scroll 0 0 transparent;
+  background: url("./images/arrow-right.png") no-repeat scroll 0 0 transparent;
   height: 56px;
   position: absolute;
   right: -105px;
@@ -127,7 +127,7 @@
   *zoom: 1;
   width: 44px;
   height: 40px;
-  background: url("images/close.png") no-repeat;
+  background: url("./images/close.png") no-repeat;
   position: absolute;
   top: -45px;
   left: 36px;
@@ -141,11 +141,11 @@
 }
 @font-face {
   font-family: 'GochiHand';
-  src: url('font/GochiHand-Regular.eot');
+  src: url('./font/GochiHand-Regular.eot');
   font-weight: normal;
   font-style: normal;
   font-family: 'GochiHand';
-  src: url('font/GochiHand-Regular.ttf') format('truetype');
+  src: url('./font/GochiHand-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
