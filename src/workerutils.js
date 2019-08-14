@@ -195,7 +195,7 @@ var PlayContidion = function(type, val) {
   }
   this.getFriendlyString = function() {
     if(this.type == '星期'){
-      return getWeekString(this.week);
+      return Utils.getWeekString(this.week);
     }else if(this.type == '日期'){
       return this.testYear ? this.datetime.format('yyyy-MM-dd') : this.datetime.format('MM-dd');     
     }else if(this.type == '时间'){
@@ -219,8 +219,6 @@ PlayContidion.fromJsonObject = function(json){
   newV.datetime = json.datetime ? new Date(json.datetime) : null;
   return newV
 }
-
-var globalTid = 0;
 
 /**
  * 播放任务
@@ -362,7 +360,9 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
       else return '无停止条件'; 
     }
     else if(this.stopConditions.length == 1){
-      return this.stopConditions[0].getFriendlyString();
+      if(this.stopConditions[0].enabled)
+        return this.stopConditions[0].getFriendlyString();
+      else return '无停止条件'; 
     }else if(this.stopConditions.length > 1){
       return  this.stopConditions[0].getFriendlyString() + 
         ' 等 ' + (this.stopConditions.length - 1) + ' 个停止条件';
@@ -380,7 +380,7 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
   }
   this.getCommandCount = function(){
     if(this.commands && this.commands.length > 0)
-      return this.commands.length + ' 个任务'
+      return this.commands.length
     return '无任务'
   }
 

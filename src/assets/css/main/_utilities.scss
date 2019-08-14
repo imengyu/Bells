@@ -3615,4 +3615,13 @@ a.text-dark:hover, a.text-dark:focus {
 .invisible {
   visibility: hidden !important;
 }
-/*# sourceMappingURL=bootstrap-utilities.css.map */
+
+.anim-fast {
+  animation-duration: 300ms;
+}
+.anim-normal {
+  animation-duration: 1s;
+}
+.anim-slow {
+  animation-duration: 3s;
+}

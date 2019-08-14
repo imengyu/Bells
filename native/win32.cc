@@ -82,6 +82,16 @@ namespace bells {
 		bool b = GetAutoStartStatus();
 		args.GetReturnValue().Set(Nan::New(b));
 	}
+	void MethodGetIsUserLeave(const FunctionCallbackInfo<Value>& args) {
+		LASTINPUTINFO lpi;
+		DWORD dwTime = 0;
+		lpi.cbSize = sizeof(lpi);
+		GetLastInputInfo(&lpi);//关于此windows API接口的介绍，参见同文件夹下的文档
+		dwTime = ::GetTickCount() - lpi.dwTime;
+
+		bool b = dwTime >= 600000;
+		args.GetReturnValue().Set(Nan::New(b));
+	}
 	void MethodCloseMointor(const FunctionCallbackInfo<Value>& args) {
 		PostMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, (LPARAM)2);
 		args.GetReturnValue().Set(Nan::New(true));
@@ -117,6 +127,7 @@ namespace bells {
 		NODE_SET_METHOD(exports, "setPowerStateEnable", MethodSetPowerStateEnable);
 		NODE_SET_METHOD(exports, "setAutoStartEnable", MethodSetAutoStartEnable);
 		NODE_SET_METHOD(exports, "getAutoStartEnabled", MethodGetAutoStartEnabled);
+		NODE_SET_METHOD(exports, "getIsUserLeave", MethodGetIsUserLeave);
 		NODE_SET_METHOD(exports, "closeMointor", MethodCloseMointor);
 		NODE_SET_METHOD(exports, "openMointor", MethodOpenMointor);
 	}

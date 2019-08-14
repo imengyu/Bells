@@ -7,6 +7,7 @@ import "./lib/FontAwesome/css/font-awesome.css";
 import "./lib/pagewalkthrough/css/jquery.pagewalkthrough.css";
 import "./lib/flipcountdown/jquery.flipcountdown.css";
 import 'element-ui/lib/theme-chalk/index.css';
+import 'animate.css/animate.css'
 import "./assets/css/main/main.scss";
 
 //import scripts
@@ -17,6 +18,7 @@ const ipc = electron.ipcRenderer;
 const remote = electron.remote;
 const Menu = remote.Menu;
 const MenuItem = remote.MenuItem;
+const process = electron.remote.process;
 
 import jQuery from "jquery";
 import "./lib/pagewalkthrough/js/jquery.pagewalkthrough.js";
@@ -37,39 +39,30 @@ Vue.use(HappyScroll)
 
 var $ = jQuery;
 
-//Date format
-Date.prototype.format = function (formatStr) {
-  var pad = function(num, n){
-    var len = num.toString().length;
-    while (len < n) {
-      num = "0" + num;
-      len++;
-    }
-    return num;
-  }
-  var str = formatStr;
-  str = str.replace(/yyyy|YYYY/, this.getFullYear());
-  str = str.replace(/MM/, pad(this.getMonth() + 1, 2));
-  str = str.replace(/dd|DD/, pad(this.getDate(), 2));
-  str = str.replace(/HH/, pad(this.getHours(), 2));
-  str = str.replace(/hh/, pad(this.getHours() > 12 ? this.getHours() - 12 : this.getHours(), 2));
-  str = str.replace(/mm/, pad(this.getMinutes(), 2));
-  str = str.replace(/ii/, pad(this.getMinutes(), 2));
-  str = str.replace(/ss/, pad(this.getSeconds(), 2));
-  return str;
-}
+console.log('Database file: ' + process.cwd() + '/data/data.db');
 
 //Database
-var db = new Datastore({ filename: './data/data.db', autoload: true });
+var db = new Datastore({ filename: process.cwd() + '/data/data.db', autoload: true });
 var mainAppRunning = false;
 
 function hideFirstLoad() {
-  $('#main-window').fadeIn('fast');
-  $('#first-loading').fadeOut('fast');
+  $('#first-loading').addClass(['animated','zoomOut','anim-fast']);
+  $('#first-loading').on('animationend', function() {
+    $('#main-window').fadeIn(600, function() {
+      $('#intro img').show().addClass(['animated','bounceInUp']);
+      $('#intro h3').show().addClass(['animated','bounceInUp']);
+    });
+  });
 }
 function hideIntro() {
   $('#intro').prop('class', 'intro hidding');
   setTimeout(function () { $('#intro').prop('class', 'intro hidden'); }, 1000);
+}
+function exitHide(callback){
+  $('body').addClass(['animated','zoomOut']);
+  $('body').on('animationend', function() {
+    callback();
+  });
 }
 function initVue() {
   main = new Vue({
@@ -96,7 +89,6 @@ function initVue() {
         calendarLoading: false,
         leftAreaScrollColor: 'rgba(0,0,0,0.08)',
         mainTableHeight: 0,
-        voiceSliderMarks: { 0:'静音', 50:'50%', 100:'100%' },
         testJSONData: '',
         shutdownTimer: null,
         shutdownTick: 30,
@@ -154,6 +146,8 @@ function initVue() {
           ],
         },
         developModeTestCkick: 0,
+        mainSelection: [],
+        timeDelayMainSwitch: null,
 
         /*标题栏*/
         isMax: false,
@@ -186,6 +180,8 @@ function initVue() {
         menuTask: null,
         menuInput: null,
         menuCopy: null,
+        menuTaskDeleteSelect: null,
+        menuTaskCopySelect: null,
 
         /*主控数据*/
 
@@ -194,6 +190,7 @@ function initVue() {
         currentShowSeason: null,
         currentShowTable: null,
         currentShowData: null,
+        currentShowDataLoading: false,
 
         currentEditSeasonBackup: null,
         currentEditSeason: null,
@@ -271,7 +268,12 @@ function initVue() {
           maxPlayingMusic: 3,
           playingMusicVolume: 50,
           musicPlayingListShow: true,
-          developerMode: false
+          developerMode: false,
+          idStorage: {
+            tid: 0,
+            bid: 0,
+            sid: 0
+          },
         },
         appSettings: null,
         appSettingsBackup: null,
@@ -333,7 +335,9 @@ function initVue() {
       /*标题栏操作*/
       minWindow() { ipc.send('main-act-window-control', 'minimize'); },
       maxRestoreWindow() { this.isMax = !this.isMax; ipc.send('main-act-window-control', this.isMax ? 'maximize' : 'unmaximize'); },
-      closeWindow() { ipc.send('main-act-window-control', 'close'); },
+      closeWindow() { 
+        $('#main-window').fadeOut(300, () => { ipc.send('main-act-window-control', 'close');$('#main-window').show(); })
+      },
 
       /*退出对话框控制*/
       showDialogExit() { 
@@ -435,8 +439,10 @@ function initVue() {
             //当前分钟存在任务，启动秒时钟
 
             this.timerMinuteWkCurrent = this.timeNow.getMinutes();
-            this.timerTickSec();
-            this.timerSec = setInterval(this.timerTickSec, 1000);
+            if(!this.timerSec){
+              this.timerTickSec();
+              this.timerSec = setInterval(this.timerTickSec, 1000);
+            }
             console.log('Timer second start at : ' + new Date().format('HH:ii:ss'));
           }
         }else if(this.timerHourCorrected) {
@@ -453,9 +459,11 @@ function initVue() {
           //当前小时存在任务，启动分钟时钟
 
           this.timerHourWkCurrent = hour;
-          this.timerTickMinute();
-          this.timerMinute = setInterval(this.timerTickMinute, 60000);
-          console.log('Timer minute stop at : ' + new Date().format('HH:ii:ss'));
+          if(!this.timerMinute) {
+            this.timerTickMinute();
+            this.timerMinute = setInterval(this.timerTickMinute, 60000);
+          }
+          console.log('Timer minute start at : ' + new Date().format('HH:ii:ss'));
         }
         //0 点需要重新切换列表状态，和执行数据保存任务
         if(hour == 0){
@@ -661,19 +669,31 @@ function initVue() {
         this.menuSeason = new Menu();
         this.menuSeason.append(new MenuItem({ label: '编辑时令', click: () => { this.editSeason(); } }));
         this.menuSeason.append(new MenuItem({ label: '删除时令', click: () => { this.deleteSeason(); } }))
+        this.menuSeason.append(new MenuItem({ type: 'separator' }))
         this.menuSeason.append(new MenuItem({ label: '手动设为当前时令', click: () => { this.manualSetToCurrent(); } }))
         this.menuSeason.append(new MenuItem({ label: '清除手动设置的时令', click: () => { this.manualSetSeasonClear(); } }))
 
         this.menuTable = new Menu();
         this.menuTable.append(new MenuItem({ label: '编辑时间表', click: () => { this.editTable(); } }));
         this.menuTable.append(new MenuItem({ label: '删除时间表', click: () => { this.deleteTable(); } }))
+        this.menuTable.append(new MenuItem({ type: 'separator' }))
+        this.menuTable.append(new MenuItem({ label: '复制时间表', click: () => { this.copyTable() } }))
+        this.menuTable.append(new MenuItem({ label: '移动时间表', click: () => { this.moveTable() } }))
 
         this.menuTask = new Menu();
+        this.menuTaskDeleteSelect = new MenuItem({ label: '复制选中的任务至', click: () => { this.copyCheckedTask() } });
+        this.menuTaskCopySelect = new MenuItem({ label: '删除选中的任务', click: () => { this.deleteCheckedTask() } });
+        this.menuTaskCopySelect.enabled = false;
+        this.menuTaskDeleteSelect.enabled = false;
         this.menuTask.append(new MenuItem({ label: '编辑任务', click: () => { this.editTask(); } }));
         this.menuTask.append(new MenuItem({ label: '删除任务', click: () => { this.deleteTask(); } }))
+        this.menuTask.append(new MenuItem({ label: '复制任务', click: () => { this.copyTask() } }));
+        this.menuTask.append(new MenuItem({ label: '移动任务', click: () => { this.moveTask() } }));
+        this.menuTask.append(new MenuItem({ type: 'separator' }))
+        this.menuTask.append(this.menuTaskDeleteSelect)
+        this.menuTask.append(this.menuTaskCopySelect)
         this.menuTask.append(new MenuItem({ type: 'separator' }))
         this.menuTask.append(new MenuItem({ label: '立即播放任务', click: () => { this.playTaskUser(); } }))
-
 
         this.menuInput = new Menu();
         this.menuInput.append(new MenuItem({ label:'剪切', role: 'cut' }));
@@ -696,6 +716,13 @@ function initVue() {
       mainListItemDoubleClick(row, column, event){
         this.currentEditTask = row;
         this.playTask(row);
+      },
+      mainListHandleSelectionChange(val) {
+        var b = (val && val.length > 0)
+        this.menuTaskCopySelect.enabled = b;
+        this.menuTaskDeleteSelect.enabled = b;
+
+        this.mainSelection = val;
       },
 
       /*数据主控*/
@@ -864,8 +891,14 @@ function initVue() {
         }
       },
       forceClearData(){
-        this.loadJsonData([]);
-        this.$message('强制清除数据');
+        this.$confirm('您真的要清除数据? 此操作不可恢复！', '提示', {
+          confirmButtonText: '清除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.loadJsonData([]);
+          this.$message('强制清除数据成功');
+        }).catch(() => {});
       },
       loadSettings() {
         if(this.appSettings.appFirstLoad){
@@ -883,12 +916,16 @@ function initVue() {
           document.getElementById('login-app-title').innerText = this.appSettings.appTitle;
         }
         bellsWin32.setPowerStateEnable(this.appSettings.preventSleep);
+        globalTid = this.appSettings.idStorage.tid;
+        globalBid = this.appSettings.idStorage.bid;
+        globalSid = this.appSettings.idStorage.sid;
       },
       saveSettings(){
         this.appSettings.playingMusicVolume = this.playingMusicVolume;
         this.appSettings.musicPlayingListShow = this.musicPlayingListShow;
-
-
+        this.appSettings.idStorage.tid = globalTid;
+        this.appSettings.idStorage.bid = globalBid;
+        this.appSettings.idStorage.sid = globalSid;
       },
       loadJsonData(json){
         if(!json){
@@ -900,6 +937,7 @@ function initVue() {
         for (var i = 0, c = this.data.length; i < c; i++) {
           var season = this.data[i];
           season.playTime = WorkerUtils.PlayDate.fromJsonObject(season.playTime);
+          if(globalSid < season.sid) globalSid = season.sid;
           for (var j = 0, d = season.tables.length; j < d; j++) {
             var table = season.tables[j];
             var tableOldplayConditions = table.playConditions;
@@ -933,11 +971,13 @@ function initVue() {
       setDataParentTable(season, table){
         table.season = season;
         table.playedTasks = 0;
+        if(globalBid < table.tid) globalBid = table.tid;
         for (var k = 0, e = table.playConditions.length; k < e; k++)
           table.playConditions[k].parent = table;
         for (var k = 0, e = table.tasks.length; k < e; k++){
           table.tasks[k].parent = table;
           table.tasks[k].status = 'notplay';
+          if(globalTid < table.tasks[k].sid) globalTid = table.tasks[k].tid;
           for (var j = 0, f = table.tasks[k].playConditions.length; j < f; j++)
             table.tasks[k].playConditions[j].parent = table.tasks[k];
           for (var j = 0, f = table.tasks[k].stopConditions.length; j < f; j++)
@@ -962,11 +1002,15 @@ function initVue() {
 
       /*锁定解锁 */
       switchSystemLock(byUser){
-        if(this.systemLocked) this.systemLocked = false;
+        if(this.systemLocked) {
+          this.systemLocked = false;
+          return true
+        }
         else{
           if(this.appSettings.preventAnymouseUse 
             && !Utils.isNullOrEmpty(this.appSettings.managerPassword)){
             this.systemLocked = true;
+            return true
           }else if(byUser){
             this.$alert("看起来您没有设置管理员密码，您需要设置管理员密码才能使用锁定功能<br>" + 
             "您可以转到 设置><a href=\"javascript:;\" onclick=\"main.editSetings('security')\">安全</a> 来设置管理员密码。", '锁定提示',{dangerouslyUseHTMLString:true});
@@ -1009,7 +1053,7 @@ function initVue() {
           }, {wrapper: '#main_area',popup: {content: '#walkthrough-4', type: 'tooltip',position: 'left', width: '150px', offsetVertical: 200, offsetHorizontal: 25, offsetArrowHorizontal: 25 }
           }, {wrapper: '#side_bottom',popup: {content: '#walkthrough-5', type: 'tooltip',position: 'right'}
           }, {wrapper: '#btn-help',popup: {content: '#walkthrough-6', type: 'tooltip',position: 'right'}
-          }, {wrapper: '#music_player_area',popup: {content: '#walkthrough-7', type: 'tooltip', position: 'top', width: '300px', offsetVertical: -50 }
+          }, {wrapper: '#music_player_controls_area',popup: {content: '#walkthrough-7', type: 'tooltip', position: 'left', width: '300px', offsetVertical: -50, offsetHorizontal: -15 }
           }, { popup: {content: '#walkthrough-8', type: 'modal' }
           }],
           buttons: {
@@ -1039,10 +1083,19 @@ function initVue() {
           if(this.currentShowTable && this.currentShowTable.season == this.currentShowSeason)
             this.currentShowTable = null;
           this.currentShowSeason = season;
+          this.switchSeasonTablesStatus(season);
         }
       },
       switchShowCurrentTable(table){
-        this.currentShowTable = table;
+        if(!this.timeDelayMainSwitch && table != this.currentShowTable){
+          this.currentShowTable = null;
+          this.currentShowDataLoading = true;
+          this.timeDelayMainSwitch = setTimeout(() => {
+            this.currentShowDataLoading = false;
+            this.currentShowTable = table;
+            this.timeDelayMainSwitch = null
+          }, 600)
+        }
       },
       switchCurrentSeason() {
         for (var i = 0, c = this.data.length; i < c; i++) {
@@ -1260,6 +1313,7 @@ function initVue() {
         }).catch(() => {});
       },
       addSeason(){
+        globalSid++;
         this.currentIsAddSeason = true;
         this.currentEditSeason = {
           name: '新时令',
@@ -1269,6 +1323,7 @@ function initVue() {
           enabled: true,
           playTime: new WorkerUtils.PlayDate('1/1', '12/31', false),
           tables: [],
+          sid: globalSid
         };
         this.currentEditSeasonBackup = Utils.clone(this.currentEditSeason);
         this.showEditSeasonDialog = true;
@@ -1301,15 +1356,16 @@ function initVue() {
           if(this.currentShowTable == this.currentEditTable)
             this.currentShowTable = null;
           var tablesArr = this.currentEditTable.season.tables;
-          tablesArr.splice(this.tablesArr.indexOf(this.currentEditTable), 1);
+          tablesArr.splice(tablesArr.indexOf(this.currentEditTable), 1);
           this.currentEditTable = null;
           this.$message({
             type: 'success',
             message: '时间表已删除'
           });
-        }).catch(() => {});
+        }).catch((e) => { console.log(e) });
       },      
       addTable(){
+        globalBid++;
         this.currentIsAddTable = true;
         this.currentEditTable = {
           name: '新时间表',
@@ -1321,6 +1377,7 @@ function initVue() {
           playConditions: [],
           playedTasks: 0,
           tasks: [],
+          tid: globalBid
         };
         this.currentEditTableBackup = Utils.clone(this.currentEditTable);
         this.showEditTableDialog = true;
@@ -1331,14 +1388,30 @@ function initVue() {
         this.setDataParentTable(this.currentEditTableBackup.season, this.currentEditTableBackup);
         this.showEditTableDialog = true;
       },
-      editTableFinish(save){
-        this.showEditTableDialog = false;
+      moveTable(){
+        
+      },
+      copyTable(){
+        
+      },
+      editTableFinish(save, check){
+        
         if(save){
-          Utils.cloneValue(this.currentEditTable, this.currentEditTableBackup);
-          if(this.currentIsAddTable)
-            this.currentShowSeason.tables.push(this.currentEditTable);
-          this.switchTableStatus(this.currentEditTable);
+          if(!check && (!this.currentEditTable.alwaysPlay && this.currentEditTable.playConditions.length == 0)){
+            this.$confirm('当前时间表没有添加任何播放条件，这意味着它永远也不能被自动播放，是否继续？', '提示', {
+              confirmButtonText: '返回添加播放条件',
+              cancelButtonText: '继续保存',
+              type: 'warning'
+            }).then(() => {}).catch(() => { this.editTableFinish(save, true); });
+            return
+          }else{
+            Utils.cloneValue(this.currentEditTable, this.currentEditTableBackup);
+            if(this.currentIsAddTable)
+              this.currentShowSeason.tables.push(this.currentEditTable);
+            this.switchTableStatus(this.currentEditTable);
+          }
         }
+        this.showEditTableDialog = false;
         this.currentEditTable = null;
         this.currentEditTableBackup = null;
       },
@@ -1401,6 +1474,17 @@ function initVue() {
         this.currentEditCondition = null;
         this.currentEditConditionBackup = null;
       },
+      moveTask(){
+        
+      },
+      copyTask(){
+        
+      },
+      copyCheckedTask(){
+        if(this.mainSelection && this.mainSelection.length > 0){
+
+        }
+      },
       deleteTask(){
         this.$confirm('您真的要删除此任务? 注意，此操作不可恢复！' + 
           '<br>任务名称：<span class="text-important">' + this.currentEditTask.name + '</span>' + 
@@ -1417,7 +1501,18 @@ function initVue() {
             message: '时间表已删除'
           });
         }).catch(() => {});
-      },      
+      },   
+      deleteCheckedTask(){
+        if(this.mainSelection && this.mainSelection.length > 0){
+          this.$confirm('您真的要删除选中的 ' + this.mainSelection.length + ' 条任务? 注意，此操作不可恢复！', '提示', {
+            confirmButtonText: '删除',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            
+          }).catch(() => {});
+        }
+      },    
       addTask(){
         this.currentIsAddTask = true;
         this.currentEditTask = new WorkerUtils.PlayTask('新任务','',[],[],[]);
@@ -1447,7 +1542,7 @@ function initVue() {
               for (var k = 0, e = this.currentEditTaskBackup.playConditions.length; k < e; k++)
                 if(this.currentEditTaskBackup.playConditions[k].type == '时间') timeConCount++;
               if(timeConCount != 1){
-                this.$confirm('当前任务没有添加任何精确时间播放条件，它无法被自动播放，是否继续？', '提示', {
+                this.$confirm('当前任务没有添加任何精确 时间 播放条件，它无法被自动播放，是否继续？', '提示', {
                   confirmButtonText: '返回',
                   cancelButtonText: '继续保存',
                   type: 'warning'
@@ -1567,11 +1662,11 @@ function initVue() {
       addCommand(commands){
         commands.push('');
       },
-      runCommandByUser(command){
+      runCommandByUser(command, userLoopMusic){
         var str = '';
         var suffix = Utils.getFileSuffix(command);
         if(suffix == 'mp3' || suffix == 'wav' || suffix == 'ogg')
-          str = '您是否希望立即开始播放此音乐? <br>音乐：<span class="text-important">' + command + '</span>';
+          str = '您是否希望立即开始'+(userLoopMusic?'循环':'')+'播放此音乐? <br>音乐：<span class="text-important">' + command + '</span>';
         else 
           str = '您是否希望立即开始执行此命令? <br>命令：<span class="text-important">' + command + '</span>';
         this.$confirm(str, '提示', {
@@ -1580,19 +1675,22 @@ function initVue() {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.runCommand(command);
+          this.runCommand(command, null, true, userLoopMusic);
         }).catch(() => {});
       },
-      runCommand(command, musicArgs){
+      runCommand(command, musicArgs, byUser, userLoopMusic){
         var suffix = Utils.getFileSuffix(command); 
         if(suffix == 'mp3' || suffix == 'wav' || suffix == 'ogg'){
           if(!musicArgs) musicArgs = {
             musicVolume: -1,
-            musicLoopCount: -1,
+            musicLoopCount: userLoopMusic ? 64 : -1,
             musicTimeLimit: 0,
             musicStartPos: 0,
           };
-          this.addPlayMusics([command], musicArgs)
+          this.addPlayMusics([command], musicArgs, (status, playedCount, err) => {
+            if(byUser && status == 'error')
+              this.$alert('播放任务失败：' + err, { type: 'error' })
+          })
         }else{
           console.log('运行命令：' + command);
           this.log('运行命令：' + command, { modulname: '自动执行器' })
@@ -1617,24 +1715,28 @@ function initVue() {
         var parent = document.getElementById('music_player_area');
         var newMusicItem = document.createElement('div');
         var newMusicItemAudio = document.createElement('audio');
-        var newMusicItemButton = document.createElement('div');
         var newMusicItemText = document.createElement('div');
         var newMusicItemSpan = document.createElement('span');
         var newMusicItemProg = document.createElement('div');
         var newMusicItemIcon = document.createElement('i');
+        var newMusicItemControls = document.createElement('div');
+        newMusicItemControls.innerHTML = '<div class="btns"><a onclick="main.playPlayMusic(\'' + mid + '\')" id="music_player_item_' + mid + '_play" title="播放" href="javascript:;"><i class="fa fa-play" aria-hidden="true"></i></a>\
+<a onclick="main.pausePlayMusic(\'' + mid + '\')" id="music_player_item_' + mid + '_pause" title="暂停" href="javascript:;"><i class="fa fa-pause" aria-hidden="true"></i></a>\
+<a onclick="main.stopPlayMusic(\'' + mid + '\')" title="停止播放" href="javascript:;" style="font-size: 16px;"><i class="fa fa-times" aria-hidden="true"></i></a></div>\
+<div class="track"><span id="music_player_item_' + mid + '_time">00:00</span><input id="music_player_item_' + mid + '_track" type="range" min="" max="" id="hpro"/></div>';
+        newMusicItemControls.setAttribute('class', 'controls');
+        newMusicItemControls.setAttribute('style', 'display:none');
         newMusicItemIcon.setAttribute('class', 'task-tag fa fa fa-music');
         newMusicItemIcon.setAttribute('style', 'margin-right: 7px; padding: 5px 7px');
         newMusicItem.setAttribute('class', 'music-item');
-        newMusicItemButton.setAttribute('class', 'btn-round');
-        newMusicItemButton.setAttribute('onclick', 'main.stopPlayMusic(' + mid + ')');
         newMusicItemAudio.setAttribute('id', id);
         newMusicItemAudio.setAttribute('controls', 'controls');
         newMusicItemText.setAttribute('class', 'text');
         newMusicItemProg.setAttribute('class', 'progress');
         parent.appendChild(newMusicItem);
         newMusicItem.appendChild(newMusicItemAudio);
+        newMusicItem.appendChild(newMusicItemControls);
         newMusicItem.appendChild(newMusicItemText);
-        newMusicItem.appendChild(newMusicItemButton);
         newMusicItemText.appendChild(newMusicItemIcon);
         newMusicItemText.appendChild(newMusicItemProg);
         newMusicItemText.appendChild(newMusicItemSpan);
@@ -1646,9 +1748,16 @@ function initVue() {
           id: id,
           arg: musicArgs,
           htmlItem: newMusicItem,
+          audioFading: false,
+          audioDurtionString: '',
+          swingAnim: false,
           currText: newMusicItemText,
           currTextInner: newMusicItemSpan,
           currProgress: newMusicItemProg,
+          currTrack: document.getElementById('music_player_item_' + mid + '_track'),
+          currBtnPlay: document.getElementById('music_player_item_' + mid + '_play'),
+          currBtnPause: document.getElementById('music_player_item_' + mid + '_pause'),
+          currTime: document.getElementById('music_player_item_' + mid + '_time'),
           audio: newMusicItemAudio,
           callback: statusChanged,
         };
@@ -1668,6 +1777,7 @@ function initVue() {
                 }
               }
 
+              newItem.currTrack.value = 0;
               newItem.currProgress.setAttribute('style', '0%');
               try{
                 setTimeout(() => {
@@ -1707,10 +1817,43 @@ function initVue() {
             }
           });
         };
+        var timerTick = () => {
+          var precent = newMusicItemAudio.currentTime / newMusicItemAudio.duration;
 
-        //设置属性
-        if(musicArgs.musicVolume > -1) newMusicItemAudio.volume = musicArgs.musicVolume / 100.0;
-        else newMusicItemAudio.volume = this.playingMusicVolume / 100.0;
+          $(newItem.currTime).text(Utils.getTimeStringSec(newMusicItemAudio.currentTime) + '/' + newItem.audioDurtionString);
+          $(newItem.currProgress).css('width', (precent * 100) + '%');
+
+          if(!newMusicItemAudio.trackdown){
+            $(newItem.currTrack).val(parseInt(precent * 100));
+            $(newItem.currTrack).css('background', 'linear-gradient(to right, #0073bb, #0073bb ' + $(newItem.currTrack).val() + '%, #cecece ' + (parseInt($(newItem.currTrack).val()) + 1) + '%, #cecece)' );
+          }
+
+          if(musicArgs.musicTimeLimit > 0){
+            //超过限定时间时停止播放
+            this.log('音乐任务 ' + mid + ' 超出限定时间 '+musicArgs.musicTimeLimit+' (秒)，停止播放' + newItem.musicLoopCount, { modulname: '音乐播放器' })
+            if(newMusicItemAudio.currentTime > musicArgs.musicTimeLimit)
+              this.stopPlayMusic(mid);
+          }
+        }
+
+        //audio事件绑定
+        newMusicItemAudio.addEventListener('playing', () => {
+          $(newItem.currBtnPlay).css('display', 'none');
+          $(newItem.currBtnPause).css('display', 'inline-block');
+        });
+        newMusicItemAudio.addEventListener('durationchange', () => {
+          newItem.audioDurtionString = Utils.getTimeStringSec(newMusicItemAudio.duration)
+        });
+        newMusicItemAudio.addEventListener('pause', () => {
+          $(newItem.currBtnPause).css('display', 'none');
+          $(newItem.currBtnPlay).css('display', 'inline-block');
+          clearInterval(newItem.timer);
+        });
+        newMusicItemAudio.addEventListener('play', () => {
+          $(newItem.currBtnPause).css('display', 'none');
+          $(newItem.currBtnPlay).css('display', 'inline-block');
+          newItem.timer = setInterval(timerTick, 500);
+        });
         newMusicItemAudio.addEventListener('ended', () => {
           if(newItem.currentIndex < newItem.musics.length - 1){
             //继续播放下一个音乐
@@ -1721,14 +1864,14 @@ function initVue() {
             newItem.currTextInner.setAttribute('title', currentPlayPath);
             startAudio();
           }else{
-            if(newItem.musicLoopCount > 0){
-              newItem.musicLoopCount--;
+            if(newItem.arg.musicLoopCount > 0){
+              newItem.arg.musicLoopCount--;
               //播放完成一次，继续循环一次
               newItem.currentIndex = 0;
               newMusicItemAudio.src = newItem.musics[newItem.currentIndex];
               newItem.currTextInner.innerText = this.getFileName(newItem.musics[newItem.currentIndex]);
               newItem.currTextInner.setAttribute('title', newItem.musics[newItem.currentIndex]);
-              this.log('音乐任务 ' + mid + ' 循环：' + newItem.musicLoopCount, { modulname: '音乐播放器' })
+
               startAudio();
             }else{
               //播放完成，停止
@@ -1737,16 +1880,80 @@ function initVue() {
           }
         });
         newMusicItemAudio.addEventListener('timeupdate', () => {
-          newItem.currProgress.setAttribute('style', 
-            'width:' + (newMusicItemAudio.currentTime / newMusicItemAudio.duration * 100) + '%');
-          if(musicArgs.musicTimeLimit > 0){
-            //超过限定时间时停止播放
-            this.log('音乐任务 ' + mid + ' 超出限定时间 '+musicArgs.musicTimeLimit+' (秒)，停止播放' + newItem.musicLoopCount, { modulname: '音乐播放器' })
-            if(newMusicItemAudio.currentTime > musicArgs.musicTimeLimit)
-              this.stopPlayMusic(mid);
+          
+        });
+
+        //条目
+        $(newMusicItem).on('mouseleave', () => {
+          if(!newMusicItem.gplock) {
+            newMusicItem.gplock = setTimeout(() => {
+              if($(newMusicItemControls).is(':visible')) {
+                newMusicItem.swingAnim = true;
+                $(newMusicItemControls).show();
+                $(newMusicItemControls).addClass(['animated', 'fadeOutUp']);
+                $(newMusicItemControls).on('animationend', () => {
+                  $(newMusicItemControls).off('animationend');
+                  $(newMusicItemControls).removeClass(['animated', 'fadeOutUp']);
+                  $(newMusicItemControls).hide();
+                });
+                $(newMusicItemText).show();
+                $(newMusicItemText).addClass(['animated', 'fadeInUp']);
+                $(newMusicItemText).on('animationend', () => {
+                  $(newMusicItemText).off('animationend');
+                  $(newMusicItemText).removeClass(['animated', 'fadeInUp']);
+                  newMusicItem.swingAnim = false;
+                });
+              }
+              clearTimeout(newMusicItem.gplock);
+              newMusicItem.gplock = null;
+            }, 6000);
+          }
+        })
+        $(newMusicItem).on('mouseenter', () => {
+          if(newMusicItem.gplock) {
+            clearTimeout(newMusicItem.gplock);
+            newMusicItem.gplock = null;
           }
         });
-       
+        $(newMusicItem).on('click', () => {
+          if(!newMusicItem.swingAnim){
+            newMusicItem.swingAnim = true;
+            if($(newMusicItemText).is(":visible")){
+              $(newMusicItemText).show();
+              $(newMusicItemText).addClass(['animated', 'fadeOutDown']);
+              $(newMusicItemText).on('animationend', () => {
+                $(newMusicItemText).off('animationend');
+                $(newMusicItemText).removeClass(['animated', 'fadeOutDown']);
+                $(newMusicItemText).hide();
+              });
+              $(newMusicItemControls).show();
+              $(newMusicItemControls).addClass(['animated', 'fadeInDown']);
+              $(newMusicItemControls).on('animationend', () => {
+                $(newMusicItemControls).off('animationend');
+                $(newMusicItemControls).removeClass(['animated', 'fadeInDown']);
+                newMusicItem.swingAnim = false;
+              });
+            }
+          }
+        });
+
+        //设置属性
+        if(musicArgs.musicVolume > -1) newMusicItemAudio.volume = musicArgs.musicVolume / 100.0;
+        else newMusicItemAudio.volume = this.playingMusicVolume / 100.0;
+
+        //滑动条事件绑定
+        
+        //$(newItem.currTrack).RangeSlider({ min: 0,   max: 100,  step: 0.1,  callback: change});
+        $(newItem.currTrack).on('input propertychange', function(){
+          $(this).css('background', 'linear-gradient(to right, #0073bb, #0073bb ' + $(this).val() + '%, #cecece ' + (parseInt($(this).val()) + 1) + '%, #cecece)' );
+        })
+        $(newItem.currTrack).on('mousedown', function(){
+          newMusicItemAudio.trackdown = true;
+        })
+        $(newItem.currTrack).on('mouseup', function(){
+          newMusicItemAudio.trackdown = false;
+          newMusicItemAudio.currentTime = (newItem.currTrack.value / 100.0) * newMusicItemAudio.duration;
+        })
           
         //开始播放
         currentPlayPath = newItem.musics[newItem.currentIndex];
@@ -1763,17 +1970,76 @@ function initVue() {
         this.playingMusic.push(newItem);
         console.log('Start play music item ' + newItem.mid);
       },
+      pausePlayMusic(mid, callback){
+        this.playingMusic.forEach(element => {
+          if(element.mid == mid && !element.audioFading){
+            element.audioFading = true;
+
+            $(element.audio).animate({ volume: 0.01 }, 1000);
+            setTimeout(() => { 
+              element.audio.pause();
+              element.audioFading = false;
+              if(callback) callback();
+            }, 1000);
+          }
+        });
+      },
+      playPlayMusic(mid, callback){
+        this.playingMusic.forEach(element => {
+          if(element.mid == mid && !element.audioFading){
+
+            element.audioFading = true;
+            element.audio.volume = 0.01;
+            element.audio.play();
+
+            $(element.audio).animate({ 
+              volume: element.arg.musicVolume > -1 ? (element.arg.musicVolume / 100.0) : (this.playingMusicVolume / 100.0) 
+            }, 1000);
+            setTimeout(() => { 
+              element.audioFading = false;
+              if(callback) callback();
+            }, 1000);
+          }
+        });
+      },
       stopPlayMusic(mid, notCallback){
         this.playingMusic.forEach(element => {
           if(element.mid == mid){
-            element.audio.pause();
-            element.audio.src = '';
+
             if(!notCallback && element.callback) element.callback('played', element.currentIndex + 1, null);
-            document.getElementById('music_player_area').removeChild(element.htmlItem);
-            this.playingMusic.splice(this.playingMusic.indexOf(element), 1);
-            console.log('Stop play music item ' + mid);
-            this.log('停止播放音乐任务：' + mid, { modulname: '音乐播放器' })
+
+            $(element.htmlItem).css('display', 'none');
+
+            var cb = () => {
+              console.log('Stop play music item ' + mid);
+
+              this.log('停止播放音乐任务：' + mid, { modulname: '音乐播放器' })
+              this.playingMusic.splice(this.playingMusic.indexOf(element), 1);
+              document.getElementById('music_player_area').removeChild(element.htmlItem);
+              element.audio.src = '';
+            };
+
+            this.pausePlayMusic(mid, cb);
           }
+        });       
+      },
+      stopPlayAllMusic(){
+        this.playingMusic.forEach(element => {
+          if (element.callback)
+            element.callback('played', element.currentIndex + 1, null);
+
+          $(element.htmlItem).css('display', 'none');
+
+          var cb = () => {
+            console.log('Stop play music item ' + mid);
+
+            this.log('停止播放音乐任务：' + mid, { modulname: '音乐播放器' })
+            this.playingMusic.splice(this.playingMusic.indexOf(element), 1);
+            document.getElementById('music_player_area').removeChild(element.htmlItem);
+            element.audio.src = '';
+          };
+
+          this.pausePlayMusic(mid, cb);
         });       
       },
       resetAllPlayMusicVolume(vol){
@@ -1808,7 +2074,7 @@ function initVue() {
         }else if(this.developModeTestCkick < 10) {
           this.developModeTestCkick++;
           if(this.developModeTestCkick >= 3)
-            this.$message('再次单击 ' + (11 - this.developModeTestCkick) + ' 次即可进入开发者模式', {duration:1000});
+            this.$message('再次单击 ' + (11 - this.developModeTestCkick) + ' 次即可进入开发者模式', {duration:600});
         }else if(!this.appSettings.developerMode) {
           this.turnOnDeveloperMode();
           this.$message('您已经处于开发者模式！', {duration:1000});
@@ -1817,11 +2083,11 @@ function initVue() {
         }
       },
       userOutHideOrLock(){
-        this.closeMointor();
+        if(bellsWin32.getIsUserLeave()) this.closeMointor();
         if(this.appSettings.autoHide) this.closeWindow();
         if(this.appSettings.autoLock && !this.systemLocked){
-          this.log('超时系统无人控制，自动锁定', { modulname: '安全控制' })
-          this.switchSystemLock();
+          if(this.switchSystemLock())
+            this.log('超时系统无人控制，自动锁定', { modulname: '安全控制' })
         }
       },
 
@@ -1917,6 +2183,7 @@ function initVue() {
       },
       exit() {
         this.showExitDialog = false;
+        this.stopPlayAllMusic();
 
         const loading = this.$loading({
           lock: true,
@@ -1928,9 +2195,11 @@ function initVue() {
         this.saveAllData();
 
         setTimeout(function(){
-          loading.close();
-          bellsWin32.setPowerStateEnable(false);
-          ipc.send('main-act-quit', ''); 
+          exitHide(() => {
+            loading.close();
+            bellsWin32.setPowerStateEnable(false);
+            ipc.send('main-act-quit', ''); 
+          })
         }, 1500);
       },
       getPlayConditionString(playConditions) {
@@ -1975,14 +2244,27 @@ function initVue() {
           return 'background-image: url(\'file:///' + this.appSettings.appBackground.replace(/\\/g, '/') + '\')';
         return ''
       },
+      getCurrentShowSeasonTop(){
+        if(this.currentShowSeason)
+          return 60 + this.data.indexOf(this.currentShowSeason) * 60;
+        return 60;
+      },
+      flashEleAnim(ele){
+        var vclass = $(ele).prop('class');
+        if(vclass != 'animing'){
+          $(ele).prop('class', 'animing');
+          $(ele).prop('data-class', vclass);
+          setTimeout(() => {$(ele).prop('class', $(ele).prop('data-class'))}, 300);
+        }
+      },
     },
   });
 
   /*初始化加载*/
   setTimeout(function () {
-    var task_area = document.getElementById('task_area');
+    
 
-    main.process = electron.remote.process;
+    main.process = process;
     main.log('程序已启动', {modulname:'主程序'})
     main.loadDisplayTimer();
     main.loadMenus();
@@ -1992,7 +2274,12 @@ function initVue() {
       size: "sm"
     });
 
-    if(task_area)  main.mainTableHeight = task_area.offsetHeight - 35;
+    setTimeout(function () {
+      var task_area = document.getElementById('task_area');
+      if(task_area)  main.mainTableHeight = task_area.offsetHeight - 55;
+    }, 1000)
+
+    setTimeout(function () { hideIntro(); }, 2000);
   }, 700);
 
   //检测用户是否长时间无操作
@@ -2021,7 +2308,7 @@ function initVue() {
 
   window.onresize = function() {
     if(main && task_area)
-      main.mainTableHeight = task_area.offsetHeight - 35;
+      main.mainTableHeight = task_area.offsetHeight - 55;
   }
   window.addEventListener("blur", function () {
   });
@@ -2040,6 +2327,7 @@ function initVue() {
 
 
 }
+//主进程的ipc
 function initIpc() {
 
   ipc.on('selected-image', function (event, arg, path) {
@@ -2080,7 +2368,7 @@ function initIpc() {
       });
     }
   });
-  //主进程的ipc
+  
   ipc.on('main-window-act', function (event, arg) {
     switch (arg) {
       case 'show-exit-dialog': main.showDialogExit(); break;
@@ -2104,5 +2392,27 @@ window.onload = function () {
   hideFirstLoad();
   initIpc();
   initVue();
-  setTimeout(function () { hideIntro(); }, 1300);
 };
+
+
+//Date format
+Date.prototype.format = function (formatStr) {
+  var pad = function(num, n){
+    var len = num.toString().length;
+    while (len < n) {
+      num = "0" + num;
+      len++;
+    }
+    return num;
+  }
+  var str = formatStr;
+  str = str.replace(/yyyy|YYYY/, this.getFullYear());
+  str = str.replace(/MM/, pad(this.getMonth() + 1, 2));
+  str = str.replace(/dd|DD/, pad(this.getDate(), 2));
+  str = str.replace(/HH/, pad(this.getHours(), 2));
+  str = str.replace(/hh/, pad(this.getHours() > 12 ? this.getHours() - 12 : this.getHours(), 2));
+  str = str.replace(/mm/, pad(this.getMinutes(), 2));
+  str = str.replace(/ii/, pad(this.getMinutes(), 2));
+  str = str.replace(/ss/, pad(this.getSeconds(), 2));
+  return str;
+}

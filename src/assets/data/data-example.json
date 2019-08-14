@@ -5,6 +5,7 @@
         "manualPlay": false,
         "playing": true,
         "enabled": true,
+        "sid": 1,
         "playTime": {
             "arr": [
                 "2001-04-30T16:00:00.000Z",
@@ -22,6 +23,7 @@
                 "alwaysPlay": true,
                 "playConditions": [],
                 "playedTasks": 0,
+                "tid": 2,
                 "tasks": [
                     {
                         "name": "示例任务",
@@ -71,6 +73,7 @@
         "manualPlay": false,
         "playing": false,
         "enabled": true,
+        "sid": 2,
         "playTime": {
             "arr": [
                 "2001-11-04T16:00:00.000Z",
@@ -88,6 +91,7 @@
                 "alwaysPlay": true,
                 "playConditions": [],
                 "playedTasks": 0,
+                "tid": 1,
                 "tasks": [
                     {
                         "name": "示例任务",

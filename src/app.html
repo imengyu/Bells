@@ -11,15 +11,10 @@
     正在初始化，请稍后
   </div>
   <div id="main-window" class="window" style="display:none">
-    <!--窗口拖动-->
-    <div class="header">
-      <div class="left-drag"></div>
-      <div class="right-drag"></div>
-    </div>
     <!--进入遮罩-->
     <div id="intro" class="intro">
-      <img src="assets/images/logo128.png" />
-      <h3>校园铃声自动播放系统</h3>
+      <img src="assets/images/logo128.png" style="display: none" />
+      <h3 style="display: none">校园铃声自动播放系统</h3>
     </div>
     <!--错误区域-->
     <div class="error-area" id="global-error-info" style="display:none">
@@ -32,6 +27,7 @@
       <div class="app-background" :style="getAppBackgroundPath()"> </div>
       <!--标题栏按钮-->
       <div class="window-title-bar light">
+        <div class="window-dragger"></div>
         <div class="window-controls-container">
           <div class="window-icon-bg" @click="minWindow" title="最小化">
             <div class="window-icon window-minimize"></div>
@@ -79,25 +75,10 @@
       <div id="side_area" class="side-area">
         <div class="side-icon icon-main"></div>
         <ul class="side-list">
-          <!--关于-->
-          <el-popover
-            placement="right"
-            width="200"
-            trigger="click">
-
-            <div class="p-3 text-center">
-              <h5 class="mt-0 mb-2">校园铃声自动播放系统</h5>
-              Version {{ appVesrsion }} {{ appBuildDate }} <br>
-              <i class="fa fa-copyright mr-2" aria-hidden="true"></i>2019 BY 梦欤<br>
-              <a href="javascript:;" class="mt-2" @click="editSetings('about')">关于程序</a>
-            </div>
-
-            <li slot="reference" class="bells-text">
-              BELLS
-            </li>
-          </el-popover>
+          <li class="bells-text" @click="editSetings('about')">BELLS</li>
           <!--时令-->
           <div id="side_top">
+            <div class="current-cur" :style="'top: ' + getCurrentShowSeasonTop() + 'px'"></div>
             <el-tooltip v-for="(item, index) in data" :key="index" class="item" effect="dark" :content="item.name"
               placement="right">
               <li :class="(item==currentShowSeason?'active':'') + (item.playing?' playing':'')"
@@ -141,159 +122,182 @@
         <!--时间表区域-->
         <div id="table_area" class="table-area">
           <div v-if="currentShowSeason" style="height: 100%;">
-            <h3>{{ currentShowSeason.name }} 的时间表</h3>
             <!--没有时间表显示-->
-            <div v-if="!currentShowSeason.tables || currentShowSeason.tables.length == 0" class="none-area">
-              <label>
-                当前时令没有时间表
-              </label>
-              <el-button class="mt-3" type="primary" @click="addTable()" round>添加时间表</el-button>
-            </div>
+            <transition v-if="!currentShowSeason.tables || currentShowSeason.tables.length == 0" 
+              enter-active-class="animated bounceInRight" leave-active-class="animated bounceOutLeft">
+              <div class="none-area">
+                <label>
+                  当前时令没有时间表
+                </label>
+                <el-button class="mt-3" type="primary" @click="addTable()" round>添加时间表</el-button>
+              </div>
+            </transition>
             <!--时间表列表-->
-            <happy-scroll v-else :color="leftAreaScrollColor" size="5" :resize="true" :hide-horizontal="true">
-              <ul 
-                class="timetable-area"
-                @mouseenter="leftAreaScrollColor='rgba(0,0,0,0.2)'" @mouseleave="leftAreaScrollColor='rgba(0,0,0,0.05)'">
-                <li v-for="(timetable,index) in currentShowSeason.tables" 
-                  :data-status="timetable.status" 
-                  @contextmenu.prevent="showMenuTable(timetable)"
-                  @click="switchShowCurrentTable(timetable)"
-                  :class="currentShowTable == timetable ? 'active' : ''">
-                  <div class="status-info">
-                    <div>
-                      <h4>{{ timetable.name }}</h4>
-                      <span>{{ timetable.note == '' ? (timetable.alwaysPlay ? '永远处于播放状态' : getPlayConditionString(timetable.playConditions)) : timetable.note }}</span>
+            <transition v-else enter-active-class="animated slideInRight" leave-active-class="animated slideOutLeft">
+              <happy-scroll :color="leftAreaScrollColor" size="5" :resize="true" :hide-horizontal="true">
+                <ul class="timetable-area" @mouseenter="leftAreaScrollColor='rgba(0,0,0,0.2)'"
+                  @mouseleave="leftAreaScrollColor='rgba(0,0,0,0.05)'">
+                  <li v-for="(timetable,index) in currentShowSeason.tables" :key="timetable.tid" :data-status="timetable.status"
+                    @contextmenu.prevent="showMenuTable(timetable)" @click="switchShowCurrentTable(timetable)"
+                    :class="currentShowTable == timetable ? 'active' : ''">
+                    <div class="status-info">
+                      <div>
+                        <h4>{{ timetable.name }}</h4>
+                        <span>{{ timetable.note == '' ? (timetable.alwaysPlay ? '永远处于播放状态' : getPlayConditionString(timetable.playConditions)) : timetable.note }}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="status-icon">
-                    <span></span>
-                    <h4>{{ getTableStatusString(timetable) }}</h4>
-                  </div>
-                </li>
-                <el-tooltip class="item" effect="dark" content="添加时间表" placement="top">
-                  <li class="btn-add" @click="addTable()"></li>
-                </el-tooltip>
-              </ul> 
-            </happy-scroll>
+                    <div class="status-icon">
+                      <span></span>
+                      <h4>{{ getTableStatusString(timetable) }}</h4>
+                    </div>
+                  </li>
+                  <el-tooltip class="item" effect="dark" content="添加时间表" placement="top">
+                    <li class="btn-add" @click="addTable()"></li>
+                  </el-tooltip>
+                </ul>
+              </happy-scroll>
+            </transition>
           </div>
           <!--没有选择时令显示-->
-          <div v-else class="none-area">
-            <label>这里没有时令<br><small>点击选中一个时令或点击右边的+添加一个时令，然后就可以添加管理时间表</small></label>
-          </div>
+          <transition v-else enter-active-class="animated bounceInRight" leave-active-class="animated bounceOutLeft">
+            <div class="none-area">
+              <label>这里没有时令<br><small>点击选中一个时令或点击右边的+添加一个时令，然后就可以添加管理时间表</small></label>
+            </div>
+          </transition>
         </div>
       </div>
       <!--主区域-->
       <div :class="'main-area-background' + (getAppBackground()?' hasBackground':'')"></div>
       <div id="main_area" class="main-area">
         <div class="task-area" id="task_area">
-          <div v-if="currentShowData" class="btn-area">
-            <el-tooltip class="item" effect="dark" content="添加任务" placement="right">
-              <div class="btn-round btn-icon-add" @click="addTask()"></div>
-            </el-tooltip>
-            <el-tooltip class="item" effect="dark" content="设置时间表属性" placement="right">
-              <div class="btn-round btn-icon-cfg" @click="currentEditTable=currentShowTable;editTable()"></div>
-            </el-tooltip>
-          </div>         
-          <div v-if="currentShowData && currentShowData.length > 0" class="info-area">
-            当前列表共有 <span class="text-important">{{ currentShowTable.tasks.length }}</span> 条任务，
-            已播放 <span class="text-important">{{ currentShowTable.playedTasks }}</span> 条。
-          </div>
-          <el-table v-if="currentShowData && currentShowData.length > 0"
-            :height="mainTableHeight"
-            :data="currentShowData"
-            :default-sort="{ prop: 'playConditions' }"
-            @row-contextmenu="mainListItemRightClick"
-            @row-dblclick="mainListItemDoubleClick">
-            <el-table-column
-              label="状态"
-              width="50">
-              <template slot-scope="scope">
-                <el-tooltip class="item" effect="dark" 
-                  :content="scope.row.getStatusString()" placement="left">
-                  <div class="task-status" :data-status="scope.row.status"></div>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="名称"
-              sortable
-              prop="name">
-            </el-table-column>
-            <el-table-column
-              label="播放条件"
-              prop="playConditions"
-              sortable
-              :sort-method="mainTableSort"
-              width="120">
-              <template slot-scope="scope">
-                <i class="el-icon-time"></i>
-                <span class="ml-2">{{ scope.row.getPlayConditionString() }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="停止条件"
-              sortable
-              :sort-method="mainTableSort"
-              width="120">
-              <template slot-scope="scope">
-                <i class="el-icon-time"></i>
-                <span class="ml-2">{{ scope.row.getStopConditionString() }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="播放任务"
-              width="150">
-              <template slot-scope="scope">
-                <el-popover trigger="hover" placement="left" :title="scope.row.type">
-                  <div v-if="!scope.row.commands || scope.row.commands.length == 0" class="text-secondary text-center">
-                    无任务
-                  </div>
-                  <div v-else v-for="(item,index) in scope.row.commands" class="play-task-popover-item">          
-                    <a @click="runCommandByUser(item)" :title="(scope.row.type=='执行命令'||scope.row.type=='关闭计算机')?'执行此命令':'播放音乐'" href="javascript:;">
-                      <i class="fa fa-play" aria-hidden="true"></i>
-                    </a>
-                    <span>{{ item }}</span>
-                  </div>
-                  <div slot="reference" class="name-wrapper">
-                    <span v-if="scope.row.type=='播放音乐'" class="task-tag"><i class="fa fa-music" aria-hidden="true"></i></span>
-                    <span v-if="scope.row.type=='执行命令'" class="task-tag"><i class="fa fa-terminal" aria-hidden="true"></i></span>
-                    <span v-if="scope.row.type=='关闭计算机'" class="task-tag"><i class="fa fa-power-off" aria-hidden="true"></i></span>
-                    <span class="task-tag count">{{ scope.row.getCommandCount() }}</span>
-                  </div>
-                </el-popover>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div v-else-if="currentShowData" class="none-area">
-            <label>当前时间表没有任务，您可以添加任务</label>
-            <el-button class="mt-3" type="primary" @click="addTask()" round>添加任务</el-button>
-          </div>
-          <div v-else class="none-area">
-            <label>没有打开的列表</label>
-          </div>
+          <transition v-if="currentShowData" 
+              enter-active-class="animated fadeIn" leave-active-class="animated fadeOutRight">
+            <div class="btn-area">
+              <el-tooltip class="item" effect="dark" content="添加任务" placement="right">
+                <div class="btn-round btn-icon-add" @click="addTask()"></div>
+              </el-tooltip>
+              <el-tooltip class="item" effect="dark" content="设置时间表属性" placement="right">
+                <div class="btn-round btn-icon-cfg" @click="currentEditTable=currentShowTable;editTable()"></div>
+              </el-tooltip>
+            </div>
+          </transition>
+          <transition v-if="currentShowData && currentShowData.length > 0" 
+            enter-active-class="animated fadeIn" leave-active-class="animated fadeOutRight">
+            <div class="info-area">
+              当前列表共有 <span class="text-important">{{ currentShowTable.tasks.length }}</span> 条任务，
+              已播放 <span class="text-important">{{ currentShowTable.playedTasks }}</span> 条。
+            </div>
+          </transition>
+
+          <transition v-if="currentShowDataLoading" 
+            enter-active-class="animated anim-fast fadeInLeft" 
+            leave-active-class="animated anim-fast fadeOut">
+              <div class="none-area">
+                <label>正在加载，请稍后</label>
+              </div>
+          </transition>
+          <transition v-else-if="currentShowData && currentShowData.length > 0" 
+            enter-active-class="animated anim-fast fadeInLeft" leave-active-class="animated anim-fast fadeOutRight">
+            <el-table :height="mainTableHeight" :data="currentShowData"
+              :default-sort="{ prop: 'playConditions' }" @row-contextmenu="mainListItemRightClick"
+              @row-dblclick="mainListItemDoubleClick"
+              @selection-change="mainListHandleSelectionChange">
+              <el-table-column
+                type="selection"
+                width="45">
+              </el-table-column>
+              <el-table-column label="状态" width="50">
+                <template slot-scope="scope">
+                  <el-tooltip class="item" effect="dark" :content="scope.row.getStatusString()" placement="left">
+                    <div class="task-status" :data-status="scope.row.status"></div>
+                  </el-tooltip>
+                </template>
+              </el-table-column>
+              <el-table-column label="名称" show-overflow-tooltip sortable prop="name">
+              </el-table-column>
+              <el-table-column label="播放条件" prop="playConditions" sortable :sort-method="mainTableSort" width="120">
+                <template slot-scope="scope">
+                  <i class="el-icon-time"></i>
+                  <span class="ml-2">{{ scope.row.getPlayConditionString() }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="停止条件" sortable :sort-method="mainTableSort" width="120">
+                <template slot-scope="scope">
+                  <i class="el-icon-time"></i>
+                  <span class="ml-2">{{ scope.row.getStopConditionString() }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="播放任务" width="140">
+                <template slot-scope="scope">
+                  <el-popover trigger="click" placement="left" :title="scope.row.type">
+                    <div v-if="!scope.row.commands || scope.row.commands.length == 0" class="text-secondary text-center">
+                      无任务
+                    </div>
+                    <div v-else v-for="(item,index) in scope.row.commands" class="play-task-popover-item">
+                      <span>{{ item }}</span>
+                      <a @click="runCommandByUser(item)"
+                        :title="(scope.row.type=='执行命令'||scope.row.type=='关闭计算机')?'执行此命令':'播放音乐'" href="javascript:;">
+                        <i class="fa fa-play" aria-hidden="true"></i>
+                      </a>
+                    </div>
+                    <div slot="reference" class="name-wrapper">
+                      <span v-if="scope.row.type=='播放音乐'" title="任务执行：播放音乐，点击查看详细条目" class="task-tag cursor-pointer">
+                        <i class="fa fa-music mr-2" aria-hidden="true"></i> {{scope.row.getCommandCount()}} </span>
+                      <span v-if="scope.row.type=='执行命令'" title="任务执行：执行命令" class="task-tag cursor-pointer">
+                        <i class="fa fa-terminal mr-2" aria-hidden="true"></i> {{scope.row.getCommandCount()}} </span>
+                      <span v-if="scope.row.type=='关闭计算机'" title="关闭计算机，点击查看详细条目" class="task-tag cursor-pointer"><i class="fa fa-power-off"
+                          aria-hidden="true"></i></span>
+                    </div>
+                  </el-popover>
+                </template>
+              </el-table-column>
+            </el-table>
+          </transition>
+          <transition v-else-if="currentShowData"
+              enter-active-class="animated anim-fast fadeInLeft" leave-active-class="animated anim-fast fadeOutRight">
+            <div class="none-area">
+              <img src="assets/images/no-data.png" />
+              <label>当前时间表没有任务，您可以添加任务</label>
+              <el-button class="mt-3" type="primary" @click="addTask()" round>添加任务</el-button>
+            </div>
+          </transition>
+          <transition v-else enter-active-class="animated fadeInLeft" leave-active-class="animated fadeOutRight">
+            <div class="none-area">
+              <img src="assets/images/no-data2.png" />
+              <label>没有打开的列表</label>
+            </div>
+          </transition>
         </div>
-        <div v-show="musicPlayingListShow" id="music_player_area" class="music-player-area" id="music_area" v-show="!musicHistoryListShow">
-          <div class="music-item">
-            <el-tooltip class="item" effect="dark" content="隐藏播放控件" placement="left">
-              <div class="btn-round btn-hide-ctl" @click="musicPlayingListShow=false"></div>
-            </el-tooltip>
+        <transition enter-active-class="animated fadeInDown" leave-active-class="animated fadeOutDown">
+          <div v-show="musicPlayingListShow" id="music_player_controls_area" class="music-player-area btn-small-area">
+            <div class="music-item">
+              <el-tooltip class="item" effect="dark" content="隐藏播放控件" placement="left">
+                <div class="btn-round btn-hide-ctl" @click="musicPlayingListShow=false"></div>
+              </el-tooltip>
+            </div>
+            <div class="music-item">
+              <el-tooltip class="item" effect="dark" content="打开音乐" placement="left">
+                <div class="btn-round btn-add-music" @click="openAndPlayMusic()"></div>
+              </el-tooltip>
+            </div>
+            <div class="music-item">
+              <el-tooltip class="item" effect="dark" content="音乐列表" placement="left">
+                <div class="btn-round btn-music-list" @click="musicHistoryListShow=true"></div>
+              </el-tooltip>
+            </div>
           </div>
-          <div class="music-item">
-            <el-tooltip class="item" effect="dark" content="打开音乐" placement="left">
-              <div class="btn-round btn-add-music" @click="openAndPlayMusic()"></div>
-            </el-tooltip>
+        </transition>
+        <transition enter-active-class="animated fadeInDown" leave-active-class="animated fadeOutDown">
+          <div v-show="musicPlayingListShow" id="music_player_area" class="music-player-area items-area">
           </div>
-          <div class="music-item">
-            <el-tooltip class="item" effect="dark" content="音乐列表" placement="left">
-              <div class="btn-round btn-music-list" @click="musicHistoryListShow=true"></div>
-            </el-tooltip>
-          </div>
-        </div>  
-        <div v-show="!musicPlayingListShow" class="music-player-area-show-btn">
+        </transition>
+        <transition enter-active-class="animated fadeInDown" leave-active-class="animated fadeOutDown">
+          <div v-show="!musicPlayingListShow" class="music-player-area-show-btn">
             <el-tooltip class="item" effect="dark" content="显示播放控件" placement="left">
               <div class="btn-round" @click="musicPlayingListShow=true"></div>
             </el-tooltip>
-        </div>
+          </div>
+        </transition>
       </div>
 
       <!--新手引导-->
@@ -320,7 +324,7 @@
           点击这里可以打开帮助文档哦！
         </div>
         <div id="walkthrough-7">
-          这是音乐播放器，您可以在这里控制音乐的播放和进度等等。
+          这是音乐播放器和音乐列表，您可以在这里播放音乐和控制音乐的播放进度等等。
         </div>
         <div id="walkthrough-8">
           <h3>现在，您可以尽情使用了！</h3>
@@ -600,16 +604,16 @@
                 </el-form-item>
                 <el-form-item label="音乐限制播放时间">
                   <span class="el-form-span">设置此参数以限制此任务的音乐播放最长时间，超时自动停止，为 0 则不限制。</span><br/>
-                  <el-input-number v-model="currentEditTaskBackup.musicTimeLimit.hour" size="small" style="width:90px" controls-position="right" :min="0" :max="6"></el-input-number> : 
-                  <el-input-number v-model="currentEditTaskBackup.musicTimeLimit.minute" size="small" style="width:90px"  controls-position="right" :min="0" :max="59"></el-input-number> : 
-                  <el-input-number v-model="currentEditTaskBackup.musicTimeLimit.second" size="small" style="width:90px"  controls-position="right" :min="0" :max="59"></el-input-number>
+                  <el-input-number v-model="currentEditTaskBackup.musicTimeLimit.hour" size="small" style="width:85px" controls-position="right" :min="0" :max="6"></el-input-number>&nbsp;:&nbsp;
+                  <el-input-number v-model="currentEditTaskBackup.musicTimeLimit.minute" size="small" style="width:85px" controls-position="right" :min="0" :max="59"></el-input-number>&nbsp;:&nbsp;
+                  <el-input-number v-model="currentEditTaskBackup.musicTimeLimit.second" size="small" style="width:85px" controls-position="right" :min="0" :max="59"></el-input-number>
                 </el-form-item>
                 <el-form-item label="音乐开始时间">
                   <span class="el-form-span">设置此参数以设置音乐开始播放的位置（仅用于只有一首音乐的情况，如果有多首音乐，
                     此选项不起作用），为 0 则默认从音乐开头开始播放。</span><br/>
-                  <el-input-number v-model="currentEditTaskBackup.musicStartPos.hour" size="small" style="width:90px" controls-position="right" :min="0" :max="2"></el-input-number> : 
-                  <el-input-number v-model="currentEditTaskBackup.musicStartPos.minute" size="small" style="width:90px"  controls-position="right" :min="0" :max="59"></el-input-number> :
-                  <el-input-number v-model="currentEditTaskBackup.musicStartPos.second" size="small" style="width:90px"  controls-position="right" :min="0" :max="59"></el-input-number>
+                  <el-input-number v-model="currentEditTaskBackup.musicStartPos.hour" size="small" style="width:85px" controls-position="right" :min="0" :max="2"></el-input-number>&nbsp;:&nbsp;
+                  <el-input-number v-model="currentEditTaskBackup.musicStartPos.minute" size="small" style="width:85px"  controls-position="right" :min="0" :max="59"></el-input-number>&nbsp;:&nbsp;
+                  <el-input-number v-model="currentEditTaskBackup.musicStartPos.second" size="small" style="width:85px"  controls-position="right" :min="0" :max="59"></el-input-number>
                 </el-form-item>
               </el-form>
             </div>
@@ -800,7 +804,7 @@
           </el-tab-pane>
           <el-tab-pane label="关于" name="about">
             <div class="text-center">
-              <img src="assets/images/logo128.png" />
+              <img class="animated rubberBand" @click="flashEleAnim($event.currentTarget)" src="assets/images/logo128.png" />
               <div class="mt-3">
                 <h5 class="mb-2">关于 校园铃声自动播放系统</h5>
                 这是一款为中小学校播音工作室打造的一款可自动播放铃声、音乐的一款软件。
@@ -818,8 +822,8 @@
                 编译日期 <br />
               </div>
               <div style="display: inline-block; width: 200px; text-align: left; padding-left: 5px">
-                <span class="text-important" @click="toggleDeveloperMode">{{ appVesrsion }}</span><br />
-                <span class="text-important">{{ appBuildDate }}</span><br />
+                <span class="text-important" @click="toggleDeveloperMode()">{{ appVesrsion }}</span><br />
+                <span class="text-important" >{{ appBuildDate }}</span><br />
               </div>
             </div>
             <el-divider content-position="left">框架信息</el-divider>
@@ -976,13 +980,14 @@
           <span class="text-secondary">您可以添加一些常用的音乐在此列表中快速进行播放</span>
 
           <ul v-if="musicHistoryList && musicHistoryList.length > 0" class="music-list">
-            <li v-for="(item, index) in musicHistoryList" :key="index">
+            <li v-for="(item, index) in musicHistoryList" :key="index" @dblclick="runCommandByUser(item);musicHistoryListShow=false">
               <span :title="item">{{ getFileName(item) }} </span>
               <div class="btn-round icon-delete" title="删除" @click="removeMusicFromHistoryList(item)"></div>
               <div class="btn-round icon-play" title="播放" @click="runCommandByUser(item);musicHistoryListShow=false"></div>
+              <div class="btn-round icon-loop" title="循环播放" @click="runCommandByUser(item, true);musicHistoryListShow=false"></div>
             </li>
           </ul>
-          <div v-else style="display: flex;position: absolute;text-align: center;top: 0;left: 0;right: 0;bottom: 50px;justify-content: center;align-items: center;flex-direction: column;">
+          <div v-else style="display: flex;position: absolute;text-align: center;top: 50px;left: 0;right: 0;bottom: 100px;justify-content: center;align-items: center;flex-direction: column;">
             <label>空空如也~ (‾◡‾)<br>这里一首音乐都没有</label>
             <el-button class="mt-3" type="primary" @click="addMusicsToHistoryList()" round>添加音乐</el-button>
           </div>
@@ -1016,6 +1021,9 @@
       throw Error('本应用不能在浏览器中运行! App must run in Electron');
     }
     var main = null;
+    var globalTid = 0;
+    var globalBid = 0;
+    var globalSid = 0;
     /*Load native mode*/
     const bellsWin32 = require('./app.node')
   </script>
