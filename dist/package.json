@@ -11,7 +11,6 @@
     "registry": "https://registry.npm.taobao.org"
   },
   "dependencies": {
-    "electron": "^6.0.1",
     "nedb": "^1.8.0"
   },
   "devDependencies": {}

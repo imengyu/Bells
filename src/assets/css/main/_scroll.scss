@@ -42,3 +42,7 @@
       }
   }
 }
+
+.scroll-fix {
+  @include pc-fix-scrollbar-white()
+}

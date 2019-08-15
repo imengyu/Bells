@@ -1,138 +1,2358 @@
 [
-    {
-        "name": "夏令时",
-        "note": "",
-        "manualPlay": false,
-        "playing": true,
-        "enabled": true,
-        "sid": 1,
-        "playTime": {
-            "arr": [
-                "2001-04-30T16:00:00.000Z",
-                "2001-11-03T16:00:00.000Z"
-            ],
-            "always": false,
-            "testYear": false
-        },
-        "tables": [
-            {
-                "name": "示例时间表1",
-                "note": "",
-                "status": "notplay",
-                "enabled": true,
-                "alwaysPlay": true,
-                "playConditions": [],
-                "playedTasks": 0,
-                "tid": 2,
-                "tasks": [
-                    {
-                        "name": "示例任务",
-                        "note": "",
-                        "playConditions": [
-                            {
-                                "type": "时间",
-                                "datetime": "2019-08-08T02:00:00.000Z",
-                                "dateStart": null,
-                                "dateEnd": null,
-                                "weekStart": 0,
-                                "weekEnd": 0,
-                                "testYear": false,
-                                "enabled": true,
-                                "week": 1
-                            }
-                        ],
-                        "stopConditions": [],
-                        "commands": [
-                            "示例音乐.mp3"
-                        ],
-                        "enabled": true,
-                        "type": "播放音乐",
-                        "musicVolume": -1,
-                        "musicLoopCount": 0,
-                        "musicTimeLimit": {
-                            "hour": 0,
-                            "minute": 0,
-                            "second": 0
-                        },
-                        "musicStartPos": {
-                            "hour": 0,
-                            "minute": 0,
-                            "second": 0
-                        },
-                        "tid": 2,
-                        "playeError": null,
-                        "playingMid": null
-                    }
-                ]
-            }
-        ]
+  {
+    "name": "夏令时",
+    "note": "",
+    "manualPlay": false,
+    "playing": true,
+    "enabled": true,
+    "sid": 1,
+    "playTime": {
+      "arr": [
+        "2001-04-30T16:00:00.000Z",
+        "2001-11-03T16:00:00.000Z"
+      ],
+      "always": false,
+      "testYear": false
     },
-    {
-        "name": "冬令时",
+    "tables": [
+      {
+        "name": "示例时间表1",
         "note": "",
-        "manualPlay": false,
-        "playing": false,
+        "status": "playing",
         "enabled": true,
-        "sid": 2,
-        "playTime": {
-            "arr": [
-                "2001-11-04T16:00:00.000Z",
-                "2002-04-29T16:00:00.000Z"
-            ],
-            "always": false,
-            "testYear": false
-        },
-        "tables": [
-            {
-                "name": "示例时间表2",
-                "note": "",
-                "status": "notplay",
+        "alwaysPlay": true,
+        "playConditions": [],
+        "playedTasks": 0,
+        "tid": 2,
+        "tasks": [
+          {
+            "name": "起床",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T22:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
                 "enabled": true,
-                "alwaysPlay": true,
-                "playConditions": [],
-                "playedTasks": 0,
-                "tid": 1,
-                "tasks": [
-                    {
-                        "name": "示例任务",
-                        "note": "",
-                        "playConditions": [
-                            {
-                                "type": "时间",
-                                "datetime": "2019-08-08T02:00:00.000Z",
-                                "dateStart": null,
-                                "dateEnd": null,
-                                "weekStart": 0,
-                                "weekEnd": 0,
-                                "testYear": false,
-                                "enabled": true,
-                                "week": 1
-                            }
-                        ],
-                        "stopConditions": [],
-                        "commands": [
-                            "示例音乐.mp3"
-                        ],
-                        "enabled": true,
-                        "type": "播放音乐",
-                        "musicVolume": -1,
-                        "musicLoopCount": 0,
-                        "musicTimeLimit": {
-                            "hour": 0,
-                            "minute": 0,
-                            "second": 0
-                        },
-                        "musicStartPos": {
-                            "hour": 0,
-                            "minute": 0,
-                            "second": 0
-                        },
-                        "tid": 3,
-                        "playeError": null,
-                        "playingMid": null
-                    }
-                ]
-            }
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "\\musics\\起床号.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 36
+          },
+          {
+            "name": "早餐",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T22:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "早餐.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 38
+          },
+          {
+            "name": "早自习预备",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T23:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 40
+          },
+          {
+            "name": "早自习开始",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T23:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "早自习.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 42
+          },
+          {
+            "name": "早自习结束",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T23:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 44
+          },
+          {
+            "name": "第一节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T00:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 46
+          },
+          {
+            "name": "第一节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T00:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 48
+          },
+          {
+            "name": "第二节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T00:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 54
+          },
+          {
+            "name": "第二节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T01:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "大课间.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 56
+          },
+          {
+            "name": "第三节上课和眼保健操",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T01:55:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3",
+              "眼保健操.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 58
+          },
+          {
+            "name": "第三节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T02:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 60
+          },
+          {
+            "name": "第四节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T02:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 62
+          },
+          {
+            "name": "第四节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T03:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "午餐.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 64
+          },
+          {
+            "name": "午休开始",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T04:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "午休开始.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 66
+          },
+          {
+            "name": "午休结束",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T05:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "午休结束.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 68
+          },
+          {
+            "name": "第五节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T05:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 70
+          },
+          {
+            "name": "第五节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T06:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 72
+          },
+          {
+            "name": "第六节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T06:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 74
+          },
+          {
+            "name": "第七节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T07:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 76
+          },
+          {
+            "name": "第六节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T07:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 78
+          },
+          {
+            "name": "第七节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T08:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 80
+          },
+          {
+            "name": "第八节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T08:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 82
+          },
+          {
+            "name": "第八节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T08:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "晚餐.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 84
+          },
+          {
+            "name": "晚自习第一节",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T09:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 86
+          },
+          {
+            "name": "晚自习第一节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T10:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 88
+          },
+          {
+            "name": "晚自习第二节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T10:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 90
+          },
+          {
+            "name": "晚自习第二节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T11:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 92
+          },
+          {
+            "name": "晚自习第三节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T11:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 94
+          },
+          {
+            "name": "晚自习第三节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T12:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 96
+          },
+          {
+            "name": "教室熄灯",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T13:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "就寝.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 98
+          },
+          {
+            "name": "寝室熄灯",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T13:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "熄灯号.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 100
+          }
         ]
-    }
+      }
+    ]
+  },
+  {
+    "name": "冬令时",
+    "note": "",
+    "manualPlay": false,
+    "playing": false,
+    "enabled": true,
+    "sid": 2,
+    "playTime": {
+      "arr": [
+        "2001-11-04T16:00:00.000Z",
+        "2002-04-29T16:00:00.000Z"
+      ],
+      "always": false,
+      "testYear": false
+    },
+    "tables": [
+      {
+        "name": "示例时间表2",
+        "note": "",
+        "status": "notplay",
+        "enabled": true,
+        "alwaysPlay": true,
+        "playConditions": [],
+        "playedTasks": 0,
+        "tid": 1,
+        "tasks": [
+          {
+            "name": "起床",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T22:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "\\musics\\起床号.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 1
+          },
+          {
+            "name": "早餐",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T22:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "早餐.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 2
+          },
+          {
+            "name": "早自习预备",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T23:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 3
+          },
+          {
+            "name": "早自习开始",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T23:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "早自习.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 4
+          },
+          {
+            "name": "早自习结束",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2018-12-31T00:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 5
+          },
+          {
+            "name": "第一节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T00:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 6
+          },
+          {
+            "name": "第一节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T01:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 7
+          },
+          {
+            "name": "第二节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T01:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 8
+          },
+          {
+            "name": "第二节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T01:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "大课间.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 9
+          },
+          {
+            "name": "第三节上课和眼保健操",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T02:15:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3",
+              "眼保健操.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 10
+          },
+          {
+            "name": "第三节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T03:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 11
+          },
+          {
+            "name": "第四节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T03:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 12
+          },
+          {
+            "name": "第四节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T03:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "午餐.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 13
+          },
+          {
+            "name": "午休开始",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T04:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "午休开始.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 14
+          },
+          {
+            "name": "午休结束",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T05:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "午休结束.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 15
+          },
+          {
+            "name": "第五节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T05:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 16
+          },
+          {
+            "name": "第五节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T05:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 17
+          },
+          {
+            "name": "第六节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T06:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 18
+          },
+          {
+            "name": "第七节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T06:50:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 19
+          },
+          {
+            "name": "第六节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T06:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 20
+          },
+          {
+            "name": "第七节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T07:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 21
+          },
+          {
+            "name": "第八节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T07:40:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 22
+          },
+          {
+            "name": "第八节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T08:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "晚餐.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 23
+          },
+          {
+            "name": "晚自习第一节",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T09:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 24
+          },
+          {
+            "name": "晚自习第一节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T10:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 25
+          },
+          {
+            "name": "晚自习第二节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T10:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 26
+          },
+          {
+            "name": "晚自习第二节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T11:10:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 27
+          },
+          {
+            "name": "晚自习第三节上课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T11:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "上课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 28
+          },
+          {
+            "name": "晚自习第三节下课",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T12:20:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "下课.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 29
+          },
+          {
+            "name": "教室熄灯",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T12:30:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "就寝.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 30
+          },
+          {
+            "name": "寝室熄灯",
+            "note": "",
+            "playConditions": [
+              {
+                "type": "时间",
+                "datetime": "2019-01-01T13:00:00.000Z",
+                "dateStart": null,
+                "dateEnd": null,
+                "weekStart": 0,
+                "weekEnd": 0,
+                "not": false,
+                "testYear": false,
+                "enabled": true,
+                "week": 1
+              }
+            ],
+            "stopConditions": [],
+            "commands": [
+              "熄灯号.mp3"
+            ],
+            "enabled": true,
+            "type": "播放音乐",
+            "musicVolume": -1,
+            "musicLoopCount": 0,
+            "musicTimeLimit": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "musicStartPos": {
+              "hour": 0,
+              "minute": 0,
+              "second": 0
+            },
+            "tid": 31
+          }
+        ]
+      }
+    ]
+  }
 ]

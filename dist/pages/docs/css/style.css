@@ -373,6 +373,7 @@ input:focus {
     padding: 15px 20px;
     font-size: 0.97em;
     transition: all ease-in-out .4s; 
+    z-index: 100;
 }
 .docs-nav a {
   display: block;
@@ -396,6 +397,38 @@ input:focus {
 }
 .docs-nav::-webkit-scrollbar-track {
   background: transparent;
+}
+.docs-content{
+  position: relative;
+}
+.docs-content h2{
+  position: relative;
+}
+.docs-content h2::after{
+  display: inline-block;
+  content: '';
+  width: 6px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #0097d8;
+  position: absolute;
+  left: -20px;
+  top: 11px;
+  
+}
+.docs-content h3{
+  position: relative;
+}
+.docs-content h3::after{
+  display: inline-block;
+  content: '';
+  width: 6px;
+  height: 20px;
+  border-radius: 5px;
+  background-color: #007eb2;
+  position: absolute;
+  left: -20px;
+  top: 10px;
 }
 
 @media only screen and (min-width: 800px) {

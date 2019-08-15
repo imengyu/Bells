@@ -61,6 +61,7 @@ var PlayContidion = function(type, val) {
   this.dateEnd = null;
   this.weekStart = 0;
   this.weekEnd = 0;
+  this.not = false;
 
   if(this.type=='星期'){
     this.week = val;
@@ -84,13 +85,13 @@ var PlayContidion = function(type, val) {
 
   this.equals = function(playContidion){
     if(this.type == '星期')
-      return this.week == playContidion.week;
+      return this.week == playContidion.week && this.not == playContidion.not;
     else if(this.type=='日期' || this.type=='时间')
-      return this.datetime == playContidion.datetime;
+      return this.datetime == playContidion.datetime && this.not == playContidion.not;
     else if(this.type == '星期区间')
-      return this.weekStart == playContidion.weekStart && this.weekEnd == playContidion.weekEnd;
+      return this.weekStart == playContidion.weekStart && this.weekEnd == playContidion.weekEnd && this.not == playContidion.not;
     else if(his.type == '日期区间')
-      return this.dateStart == playContidion.dateStart && this.dateEnd == playContidion.dateEnd;
+      return this.dateStart == playContidion.dateStart && this.dateEnd == playContidion.dateEnd && this.not == playContidion.not;
     return true;
   }
   this.clone = function(){
@@ -104,6 +105,7 @@ var PlayContidion = function(type, val) {
     newV.dateEnd = this.dateEnd;
     newV.weekStart = this.weekStart;
     newV.weekEnd = this.weekEnd;
+    newV.not = this.not;
     return newV
   }
   this.copyValue = function(sourcePlayContidion){
@@ -117,21 +119,21 @@ var PlayContidion = function(type, val) {
     this.dateEnd = sourcePlayContidion.dateEnd;
     this.weekStart = sourcePlayContidion.weekStart;
     this.weekEnd = sourcePlayContidion.weekEnd;
+    this.not = sourcePlayContidion.not;
   }
 
   this.isPlayingTime = function() {
     if(!this.enabled)
       return false;
     var now = new Date();
+    var ret = false;
     if(this.type == '星期'){
-      return this.week == now.getDay();
+      ret = this.week == now.getDay();
     }else if(this.type == '日期'){
-        if(this.testYear)
-          return this.datetime.getFullYear() == now.getFullYear() 
+        if(this.testYear) ret = this.datetime.getFullYear() == now.getFullYear() 
             && this.datetime.getMonth() == now.getMonth() 
             && this.datetime.getDate() == now.getDate();
-        else
-          return this.datetime.getMonth() == now.getMonth() 
+        else ret = this.datetime.getMonth() == now.getMonth() 
             && this.datetime.getDate() == now.getDate();
     }else if(this.type == '时间'){
       return this.datetime.getHours() == now.getHours() 
@@ -140,14 +142,13 @@ var PlayContidion = function(type, val) {
     }else if(this.type == '星期区间'){
       var nowDay = now.getDay();
       if(this.weekStart == this.weekEnd)
-        return true;
-      if(this.weekStart < this.weekEnd)
-        return this.weekStart <= nowDay && nowDay <= this.weekEnd;
+        ret = true;
+      else if(this.weekStart < this.weekEnd)
+        ret = this.weekStart <= nowDay && nowDay <= this.weekEnd;
       else 
-        return nowDay >= this.weekStart || nowDay <= this.weekEnd;
+        ret = nowDay >= this.weekStart || nowDay <= this.weekEnd;
     }else if(this.type == '日期区间'){
-      if(this.testYear)
-        return this.dateStart <= now && now <= this.dateEnd;
+      if(this.testYear) ret = this.dateStart <= now && now <= this.dateEnd;
       else {
         var compareMonthAndDay = function(m1,d1,m2,d2){
           if(m1 == m2 && d1 == d2) return 0;
@@ -162,48 +163,49 @@ var PlayContidion = function(type, val) {
         var endMonth = this.dateEnd.getMonth();
 
         if(compareMonthAndDay(startMonth, startDay, endMonth, endDay) == 0){//相等
-          return true;
+          ret = true;
         }else if(compareMonthAndDay(startMonth, startDay, endMonth, endDay) == -1){//小于
-          return (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0 &&
+          ret = (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0 &&
             compareMonthAndDay(nowMonth, nowDay, endMonth, endDay) <= 0)
         }else{//大于
           //9.15 ~   ~ 1.3
-          return (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0||
+          ret = (compareMonthAndDay(startMonth, startDay, nowMonth, nowDay) <= 0||
             compareMonthAndDay(nowMonth, nowDay, endMonth, endDay) <= 0)
         }
 
       }
     }
-    return false;
+
+    return this.not ? !ret : ret;
   }
   this.isPlayingInThisHours = function() {
     var now = new Date();
     if(this.type == '时间'){
-        return this.datetime.getHours() == now.getHours() 
+       return this.datetime.getHours() == now.getHours() 
           && now.getMinutes() <= this.datetime.getMinutes();
     }
-    return false;
+    return false
   }
   this.isPlayingInThisMinute = function() {
     var now = new Date();
     if(this.type == '时间'){
-        return this.datetime.getHours() == now.getHours() 
+      return this.datetime.getHours() == now.getHours() 
           && this.datetime.getMinutes() == now.getMinutes()  
           && now.getSeconds() <= this.datetime.getSeconds();
     }
-    return false;
+    return false
   }
   this.getFriendlyString = function() {
     if(this.type == '星期'){
-      return Utils.getWeekString(this.week);
+      return (this.not ? '非 ' : '') + Utils.getWeekString(this.week);
     }else if(this.type == '日期'){
-      return this.testYear ? this.datetime.format('yyyy-MM-dd') : this.datetime.format('MM-dd');     
+      return (this.not ? '非 ' : '') + this.testYear ? this.datetime.format('yyyy-MM-dd') : this.datetime.format('MM-dd');     
     }else if(this.type == '时间'){
-      return this.datetime.format('HH:mm:ss');
+      return (this.not ? '非 ' : '') + this.datetime.format('HH:mm:ss');
     }else if(this.type == '星期区间'){
-      return getWeekString(this.weekStart) + ' 至 ' + getWeekString(this.weekEnd);
+      return (this.not ? '不在 ' : '') + getWeekString(this.weekStart) + ' 至 ' + getWeekString(this.weekEnd);
     }else if(this.type == '日期区间'){
-      return (this.testYear ? this.dateStart.format('yyyy-MM-dd') : this.dateStart.format('MM-dd'))  + ' 至 ' + 
+      return (this.not ? '不在 ' : '') + (this.testYear ? this.dateStart.format('yyyy-MM-dd') : this.dateStart.format('MM-dd'))  + ' 至 ' + 
       (this.testYear ? this.dateEnd.format('yyyy-MM-dd') : this.dateEnd.format('MM-dd'));     
     }
     return '无效播放条件';
@@ -226,7 +228,7 @@ PlayContidion.fromJsonObject = function(json){
  * @param {*} note 备注
  * @param {*} playConditions 播放条件
  */
-var PlayTask = function(name, note, commands, playConditions, stopConditions) {
+var PlayTask = function(name, note, commands, playConditions, stopConditions, tid) {
   this.name = name;
   this.note = note;
   this.playConditions = playConditions;
@@ -248,7 +250,11 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
     second: 0
   };
 
-  this.tid = globalTid; globalTid ++;
+  if(!tid) {
+    globalTid ++;
+    this.tid = globalTid; 
+  }else this.tid = tid;
+
   this.status = 'notplay';
   this.playedCommands = 0;
   this.playeError = null;
@@ -313,19 +319,19 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
     return false;
   }
 
-  this.clone = function(){
+  this.clone = function(tid){
     var newVplayConditions = [];
     var newVstopConditions = [];
     this.playConditions.forEach(element => { newVplayConditions.push(element.clone()); });
     this.stopConditions.forEach(element => { newVstopConditions.push(element.clone()); });
     var newV = new PlayTask(this.name, this.note, 
-      Utils.clone(this.commands), newVplayConditions, newVstopConditions);
-    this.enabled = this.enabled;
-    this.type = this.type;
-    this.musicVolume = this.musicVolume;
-    this.musicTimeLimit = this.musicTimeLimit;
-    this.musicLoopCount = this.musicLoopCount;
-    this.musicStartPos = this.musicStartPos;
+      Utils.clone(this.commands), newVplayConditions, newVstopConditions, tid);
+    newV.enabled = this.enabled;
+    newV.type = this.type;
+    newV.musicVolume = this.musicVolume;
+    newV.musicTimeLimit = this.musicTimeLimit;
+    newV.musicLoopCount = this.musicLoopCount;
+    newV.musicStartPos = this.musicStartPos;
     return newV
   }
   this.copyValue = function(sourcePlayTask){
@@ -374,7 +380,7 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
       case 'notplay': return '未播放';
       case 'disabled': return '已禁用';
       case 'played': return '已播放';
-      case 'error': return '播放存在错误，详情请查看日志';
+      case 'error': return '播放错误：' + this.playeError + '，详情请查看日志';
     }
     return ''
   }
@@ -383,11 +389,17 @@ var PlayTask = function(name, note, commands, playConditions, stopConditions) {
       return this.commands.length
     return '无任务'
   }
+  this.getCommandFastText = function(){
+    if(this.commands && this.commands.length > 0)
+      return Utils.getFileName(this.commands[0]) + 
+        (this.commands.length > 2 ? (' 等 ' + (this.commands.length - 1) + ' 个任务') : '');
+    return '无任务'
+  }
 
 }
 
 PlayTask.fromJsonObject = function(json){
-  var newV = new PlayTask(json.name, json.note, json.commands, [], []);
+  var newV = new PlayTask(json.name, json.note, json.commands, [], [], json.tid);
   for (var i = 0, c = json.playConditions.length; i < c; i++)
     newV.playConditions.push(PlayContidion.fromJsonObject(json.playConditions[i]));
   for (var i = 0, c = json.stopConditions.length; i < c; i++)

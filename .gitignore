@@ -1,6 +1,7 @@
 /.vscode/
 /build/
 /data/
+/musics/
 /native/build/Release/
 node_modules/
 .vs/

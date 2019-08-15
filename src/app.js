@@ -14,6 +14,7 @@ import "./assets/css/main/main.scss";
 
 const electron = require("electron");
 const fs = require("fs");
+const path = require("path");
 const ipc = electron.ipcRenderer;
 const remote = electron.remote;
 const Menu = remote.Menu;
@@ -30,7 +31,6 @@ import DateUtils from './dateutils'
 import Utils from './utils'
 import WorkerUtils from './workerutils'
 import HappyScroll from 'vue-happy-scroll'
-import Datastore from 'nedb'
 
 //设置Vue
 
@@ -39,11 +39,6 @@ Vue.use(HappyScroll)
 
 var $ = jQuery;
 
-console.log('Database file: ' + process.cwd() + '/data/data.db');
-
-//Database
-var db = new Datastore({ filename: process.cwd() + '/data/data.db', autoload: true });
-var mainAppRunning = false;
 
 function hideFirstLoad() {
   $('#first-loading').addClass(['animated','zoomOut','anim-fast']);
@@ -148,6 +143,12 @@ function initVue() {
         developModeTestCkick: 0,
         mainSelection: [],
         timeDelayMainSwitch: null,
+        timeDelayLeftSwitch: null,
+        chooseTargetCallback: null,
+        chooseTargetText: '',
+        chooseTargetType: null,
+        chooseTargetValue: 0,
+        autoStartStatus: '',
 
         /*标题栏*/
         isMax: false,
@@ -165,6 +166,7 @@ function initVue() {
         showLogDialog: false,
         showFirstIntroDialog: false,
         showCalendarDialog: false,
+        showChooseTargetDialog: false,
 
         currentIsAddSeason: false,
         currentIsAddTable: false,
@@ -191,6 +193,7 @@ function initVue() {
         currentShowTable: null,
         currentShowData: null,
         currentShowDataLoading: false,
+        currentShowSeasonLoading: false,
 
         currentEditSeasonBackup: null,
         currentEditSeason: null,
@@ -330,8 +333,12 @@ function initVue() {
           this.calendarLoaded = true;
         }
       },
-
-
+      loadBaseUI(){
+        //时钟以及高度初始化
+        $("#clock").flipcountdown({ size: "sm" });
+        this.mainTableHeight = task_area.offsetHeight - 55;
+      },
+      
       /*标题栏操作*/
       minWindow() { ipc.send('main-act-window-control', 'minimize'); },
       maxRestoreWindow() { this.isMax = !this.isMax; ipc.send('main-act-window-control', this.isMax ? 'maximize' : 'unmaximize'); },
@@ -715,7 +722,7 @@ function initVue() {
       },
       mainListItemDoubleClick(row, column, event){
         this.currentEditTask = row;
-        this.playTask(row);
+        this.playTaskUser();
       },
       mainListHandleSelectionChange(val) {
         var b = (val && val.length > 0)
@@ -726,8 +733,15 @@ function initVue() {
       },
 
       /*数据主控*/
-      loadAllData() {
-        
+      initDatabase(callback){
+        console.log('Load Database file: ' + dbPath);
+        db.loadDatabase(function (err) {
+          console.log('Load Database file ' + (err ? err : 'success'));
+          callback();
+        });
+      },
+      loadAllData(callback) {
+
         //加载应用程序设置
         db.find({ type: 'main-settings-data' }, function (err, docs) {
           if(docs != null || docs.length != 0){
@@ -743,6 +757,11 @@ function initVue() {
               console.log('Data setting load failed, use default settings : ' + e);
               main.appSettings = {};
               Utils.cloneValueForce(main.appSettings, main.appSettingsDef);
+
+              //检查以前是否运行过
+              if(localStorage.getItem("appVersion") != main.appVesrsion)
+                main.appSettings.appFirstLoad = true
+              
               main.log('程序设置数据加载失败，使用默认设置', { modulname: '数据控制', level: '错误' })
             }
 
@@ -756,31 +775,61 @@ function initVue() {
               main.systemLocked = true;
             main.loadSettings();
           }
-        });
-        //加载数据
-        db.find({ type: 'main-data' }, function (err, docs) {
-          if(docs == null || docs.length == 0){
-            if(!main.appSettings.appFirstLoad)
-              main.$message('软件无法读取数据，可能是数据文件丢失', '提示', { type: 'error', duration: 10000 });
-            console.log('Data load empty');
-          }else{
-            var json = null;
-            try{
-              json= JSON.parse(docs[0].data);
-            }
-            catch(e){
-              console.log('Data load success, but parse json failed : ' + e);
 
-              main.$message('软件无法读取数据，发生了异常', '提示', { type: 'error', duration: 10000 });
-              main.log('播放数据加载失败，' + e, { modulname: '数据控制', level: '错误' })
-              return;
+          //应用存储
+          localStorage.setItem("appVersion", main.appVesrsion);
+
+          //加载数据
+          db.find({ type: 'main-data' }, function (err, docs) {
+            if(docs == null || docs.length == 0){
+              if(!main.appSettings.appFirstLoad)
+                main.$message('软件无法读取数据，可能是数据文件丢失', '提示', { type: 'error', duration: 10000 });
+              main.log('没有播放数据，使用默认数据', { modulname: '数据控制', level: '错误' })
+
+              console.log('Data load empty');
+            }else{
+              var json = null;
+              try{
+                json= JSON.parse(docs[0].data);
+              }
+              catch(e){
+                main.$message('软件无法读取数据，发生了异常', '提示', { type: 'error', duration: 10000 });
+                main.log('播放数据加载失败，' + e, { modulname: '数据控制', level: '错误' })
+
+                console.log('Data load success, but parse json failed : ' + e);
+                return;
+              }
+              main.loadJsonData(json);
+              main.log('播放数据加载成功', { modulname: '数据控制' })
+              main.dataLastSaveDate = docs[0].lastSaveDate;
+
+              console.log('Data load success, last data save date : ' + docs[0].lastSaveDate);
             }
-            main.loadJsonData(json);
-            main.log('播放数据加载成功', { modulname: '数据控制' })
-            console.log('Data load success, last data save date : ' + docs[0].lastSaveDate);
-            main.dataLastSaveDate = docs[0].lastSaveDate;
-            //数据就绪以后启动时钟
-            main.loadTimer();
+    
+            if(callback)callback();
+
+          });
+
+        });
+        
+        //加载音乐列表数据
+        this.loadMusicList();
+      },
+      loadMusicList()
+      {
+        //加载musics文件夹中的音乐
+        var dirName = this.process.cwd()  + '\\musics\\';
+        fs.readdir(dirName, (err, files) => {
+          if(files){
+            (function iterator(i){
+              if(i == files.length)
+                return ;
+              fs.stat(path.join(dirName, files[i]), function(err, data){     
+                if(data.isFile())            
+                  main.musicHistoryList.push(dirName + files[i]);
+                iterator(i+1);
+              });   
+            })(0);
           }
         });
         //加载音乐列表数据
@@ -796,12 +845,13 @@ function initVue() {
               return;
             }
             console.log('Data musics load success, last data save date : ' + docs[0].lastSaveDate);
-            main.musicHistoryList = json;
+            json.forEach((k) => {
+              main.musicHistoryList.push(k);
+            })
           }
         });
-        
       },
-      saveAllData(){
+      saveAllData(callback){
 
         //将数据转为可保存JSON
         var data2 = Utils.clone(this.data);
@@ -813,12 +863,8 @@ function initVue() {
           }
         }
         var data3 = JSON.stringify(data2);
-        var dataMusic = JSON.stringify(this.musicHistoryList);
 
-        this.saveSettings();
-        var dataSettings = JSON.stringify(this.appSettings);
-
-        this.log('开始保存数据', { modulname: '数据控制' })
+        this.log('保存数据', { modulname: '数据控制' })
 
         //保存数据  
         db.find({ type: 'main-data' }, function (err, docs) {//是否存在旧数据
@@ -827,40 +873,69 @@ function initVue() {
             db.insert({ type: 'main-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: data3 }, function (err, newDocs) {
               console.log('Save data main-data insert : ' + (err ? err : 'success'));
               main.log('保存播放数据:' + (err ? '失败：' + err : '成功'), { modulname: '数据控制', level: (err ? '错误' : '信息') })
+              main.saveAllDataSettings(() => {
+                main.saveAllDataList(callback);
+              });
             });
           }else{
             //更新数据
             db.update({ type: 'main-data' }, { type: 'main-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: data3 }, function (err, newDocs) {
               console.log('Save data main-data update : ' + (err ? err : 'success'));
               main.log('保存播放数据:' + (err ? '失败：' + err : '成功'), { modulname: '数据控制', level: (err ? '错误' : '信息') })
+              main.saveAllDataSettings(() => {
+                main.saveAllDataList(callback);
+              });
             });
           }
         });
+      },
+      saveAllDataSettings(callback){
+
+        this.saveSettings();
+        var dataSettings = JSON.stringify(this.appSettings);
+
+        //保存系统设置数据
+        db.find({ type: 'main-settings-data' }, function (err, docs) {//是否存在旧数据
+          if(docs == null || docs.length == 0){
+            //插入数据
+            db.insert({ type: 'main-settings-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: dataSettings }, function (err, newDocs) {
+              console.log('Save data main-settings-data insert : ' + (err ? err : 'success'));
+              if(callback)callback();
+            });
+          }else{
+            //更新数据
+            db.update({ type: 'main-settings-data' }, { type: 'main-settings-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: dataSettings }, function (err, newDocs) {
+              console.log('Save data main-settings-data update : ' + (err ? err : 'success'));
+              if(callback)callback();
+            });
+          }
+        });
+      },
+      saveAllDataList(callback){
+
+        var data = Utils.clone(this.musicHistoryList);
+        var data2 = [];
+
+        var dirName = this.process.cwd()  + '\\musics\\';
+        data.forEach((item) => {
+          if(item.indexOf(dirName) != 0) data2.push(item);
+        });
+
+        var dataMusic = JSON.stringify(data2);
+
         //保存音乐列表数据
         db.find({ type: 'main-musics-data' }, function (err, docs) {//是否存在旧数据
           if(docs == null || docs.length == 0){
             //插入数据
             db.insert({ type: 'main-musics-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: dataMusic }, function (err, newDocs) {
               console.log('Save data main-musics-data insert : ' + (err ? err : 'success'));
+              if(callback)callback();
             });
           }else{
             //更新数据
             db.update({ type: 'main-musics-data' }, { type: 'main-musics-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: dataMusic }, function (err, newDocs) {
               console.log('Save data main-musics-data update : ' + (err ? err : 'success'));
-            });
-          }
-        });
-        //保存音乐列表数据
-        db.find({ type: 'main-settings-data' }, function (err, docs) {//是否存在旧数据
-          if(docs == null || docs.length == 0){
-            //插入数据
-            db.insert({ type: 'main-settings-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: dataSettings }, function (err, newDocs) {
-              console.log('Save data main-settings-data insert : ' + (err ? err : 'success'));
-            });
-          }else{
-            //更新数据
-            db.update({ type: 'main-settings-data' }, { type: 'main-settings-data', lastSaveDate: new Date().format('yyyy-MM-dd HH:ii:ss'), data: dataSettings }, function (err, newDocs) {
-              console.log('Save data main-settings-data update : ' + (err ? err : 'success'));
+              if(callback)callback();
             });
           }
         });
@@ -873,16 +948,14 @@ function initVue() {
             spinner: 'el-icon-loading',
             background: 'rgba(255, 255, 255, 0.8)'
           });
-          this.saveAllData();
-          
-          setTimeout(()=>{
+          this.saveAllData(()=>{
             loading.close();
             this.loadJsonData(this.data);
             this.$message({
               message: '数据保存成功',
               type: 'success'
             });
-          }, 1500);
+          });
         }catch(e){
           this.$alert('数据保存失败。' + e, '提示', {
             confirmButtonText: '确定',
@@ -927,6 +1000,18 @@ function initVue() {
         this.appSettings.idStorage.bid = globalBid;
         this.appSettings.idStorage.sid = globalSid;
       },
+      displayJsonData(){
+        //将数据转为可保存JSON
+        var data2 = Utils.clone(this.data);
+        for (var i = 0, c = data2.length; i < c; i++) {
+          var season = data2[i];
+          for (var j = 0, d = season.tables.length; j < d; j++) {
+            var table = season.tables[j];
+            this.clearDataParentTable(table);
+          }
+        }
+        this.testJSONData = JSON.stringify(data2);
+      },
       loadJsonData(json){
         if(!json){
           console.log('Data failed empty data');
@@ -956,18 +1041,7 @@ function initVue() {
         this.currentShowTable = null;
         this.switchCurrentSeason();
       },
-      displayJsonData(){
-        //将数据转为可保存JSON
-        var data2 = Utils.clone(this.data);
-        for (var i = 0, c = data2.length; i < c; i++) {
-          var season = data2[i];
-          for (var j = 0, d = season.tables.length; j < d; j++) {
-            var table = season.tables[j];
-            this.clearDataParentTable(table);
-          }
-        }
-        this.testJSONData = JSON.stringify(data2);
-      },
+      
       setDataParentTable(season, table){
         table.season = season;
         table.playedTasks = 0;
@@ -992,7 +1066,8 @@ function initVue() {
           table.tasks[k].parent = undefined;
           table.tasks[k].status = undefined;
           table.tasks[k].playedCommands = undefined;
-          table.tasks[k].playeErrors = undefined;
+          table.tasks[k].playeError = undefined;
+          table.tasks[k].playingMid = undefined;
           for (var j = 0, f = table.tasks[k].playConditions.length; j < f; j++)
             table.tasks[k].playConditions[j].parent = undefined;
           for (var j = 0, f = table.tasks[k].stopConditions.length; j < f; j++)
@@ -1082,8 +1157,14 @@ function initVue() {
         if (season != this.currentShowSeason){
           if(this.currentShowTable && this.currentShowTable.season == this.currentShowSeason)
             this.currentShowTable = null;
-          this.currentShowSeason = season;
-          this.switchSeasonTablesStatus(season);
+
+          this.currentShowSeasonLoading = true;
+          this.timeDelayLeftSwitch = setTimeout(() => {
+            this.currentShowSeasonLoading = false;
+            this.currentShowSeason = season;
+            this.switchSeasonTablesStatus(season);
+            this.timeDelayLeftSwitch = null
+          }, 200)
         }
       },
       switchShowCurrentTable(table){
@@ -1094,7 +1175,7 @@ function initVue() {
             this.currentShowDataLoading = false;
             this.currentShowTable = table;
             this.timeDelayMainSwitch = null
-          }, 600)
+          }, 200)
         }
       },
       switchCurrentSeason() {
@@ -1147,6 +1228,7 @@ function initVue() {
       /*设置操作事件*/
       switchAutoStart(enable){
         var rs = bellsWin32.setAutoStartEnable(enable);
+        this.autoStartStatus = this.getAutoStartStatus();
         this.$message((enable ? '设置' : '取消') + '开机启动' + (rs ? '成功' : '失败'), {
           type: rs ? 'success' : 'error'
         })
@@ -1237,6 +1319,7 @@ function initVue() {
         this.settingsActiveTab = tab;
         this.appSettingsBackup = Utils.clone(this.appSettings);
         this.showSettingsDialog = true;
+        this.autoStartStatus = this.getAutoStartStatus();
       },
       editSetingsFinish(save){
         if(save){
@@ -1291,7 +1374,7 @@ function initVue() {
         }).catch(() => {});
       },
       deleteSeason(){
-        this.$confirm('您真的要删除此时令? 其下所有时间表将会被删除，此操作不可恢复！' + 
+        this.$confirm('您真的要删除此时令? <b class="text-danger">其下所有时间表将会被删除，此操作不可恢复！</b>' + 
         '<br>时令名称：<span class="text-important">' + this.currentEditSeason.name + '</span>' + 
         '<br>时令备注：<span class="text-important">' + this.currentEditSeason.note + '</span>', '提示', {
           dangerouslyUseHTMLString: true,
@@ -1345,7 +1428,7 @@ function initVue() {
         this.currentEditSeasonBackup = null;
       },
       deleteTable(){
-        this.$confirm('您真的要删除此时间表? 注意，此操作不可恢复！' + 
+        this.$confirm('您真的要删除此时间表? <b class="text-danger">注意，此操作不可恢复！</b>' + 
         '<br>时间表名称：<span class="text-important">' + this.currentEditTable.name + '</span>' + 
         '<br>时间表备注：<span class="text-important">' + this.currentEditTable.note + '</span>', '提示', {
           dangerouslyUseHTMLString: true,
@@ -1353,11 +1436,15 @@ function initVue() {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
+
+          var season = this.currentEditTable.season;
           if(this.currentShowTable == this.currentEditTable)
             this.currentShowTable = null;
-          var tablesArr = this.currentEditTable.season.tables;
+          var tablesArr = season.tables;
           tablesArr.splice(tablesArr.indexOf(this.currentEditTable), 1);
           this.currentEditTable = null;
+
+          this.switchSeasonTablesStatus(season);
           this.$message({
             type: 'success',
             message: '时间表已删除'
@@ -1389,15 +1476,39 @@ function initVue() {
         this.showEditTableDialog = true;
       },
       moveTable(){
-        
+        this.chooseTarget((choosedSeason) => {
+          this.currentEditTable.season.tables.splice(this.currentEditTable.season.tables.indexOf(this.currentEditTable), 1);
+          this.currentEditTable.season = choosedSeason;
+          choosedSeason.tables.push(this.currentEditTable);
+
+          this.switchSeasonTablesStatus(choosedSeason);
+          this.$message({ message: '移动时间表成功！', type: 'success' });
+        }, '选择要将这个时间表移动到的目标时令', 'season');
       },
       copyTable(){
-        
+        this.chooseTarget((choosedSeason) => {
+          globalBid++;
+          var newTable = {};
+          Utils.cloneValueForce(newTable, this.currentEditTable) ;
+          newTable.tid = globalBid;
+          newTable.name += ' (复制)';
+          newTable.tasks = [];
+
+          //克隆子任务
+          for (var i = 0, c = this.currentEditTable.tasks.length; i < c; i++) {
+            newTable.tasks.push(this.currentEditTable.tasks[i].clone());
+          }
+
+          choosedSeason.tables.push(newTable);
+
+          this.switchSeasonTablesStatus(choosedSeason);
+          this.$message({ message: '复制时间表成功！', type: 'success' });
+        }, '选择要将这个时间表复制到的目标时令', 'season');
       },
       editTableFinish(save, check){
         
         if(save){
-          if(!check && (!this.currentEditTable.alwaysPlay && this.currentEditTable.playConditions.length == 0)){
+          if(!check && (!this.currentEditTableBackup.alwaysPlay && this.currentEditTableBackup.playConditions.length == 0)){
             this.$confirm('当前时间表没有添加任何播放条件，这意味着它永远也不能被自动播放，是否继续？', '提示', {
               confirmButtonText: '返回添加播放条件',
               cancelButtonText: '继续保存',
@@ -1475,14 +1586,48 @@ function initVue() {
         this.currentEditConditionBackup = null;
       },
       moveTask(){
-        
+        this.chooseTarget((choosedTable) => {
+          this.currentEditTask.parent.tasks.splice(this.currentEditTask.parent.tasks.indexOf(this.currentEditTask), 1);
+          if(this.currentEditTask.parent.status == 'playing')
+            this.switchTableStatus(this.currentEditTask.parent);
+          
+          this.currentEditTask.parent = choosedTable;
+          choosedTable.tasks.push(this.currentEditTask);
+
+          if(choosedTable.status == 'playing')
+            this.switchTableStatus(choosedTable);
+          this.$message({ message: '移动任务成功！', type: 'success' });
+        }, '选择要将此任务移动到哪个时间表', 'table');
       },
       copyTask(){
-        
+        this.chooseTarget((choosedTable) => {
+          globalTid++;
+          var newTask = this.currentEditTask.clone();
+          newTask.tid = globalTid;
+          newTask.parent = choosedTable;
+          newTask.name += ' (复制)';
+          choosedTable.tasks.push(newTask);
+
+          if(choosedTable.status == 'playing')
+            this.switchTableStatus(choosedTable);
+          this.$message({ message: '复制任务成功！', type: 'success' });
+        }, '选择要将此任务复制到哪个时间表', 'table');
       },
       copyCheckedTask(){
         if(this.mainSelection && this.mainSelection.length > 0){
-
+          this.chooseTarget((choosedTable) => {
+            for (var i = 0, c = this.mainSelection.length; i < c; i++){
+              globalTid++;
+              var newTask = this.mainSelection[i].clone();
+              newTask.tid = globalTid;
+              newTask.name += ' (复制)';
+              newTask.parent = choosedTable;
+              choosedTable.tasks.push(newTask);
+            }
+            if(choosedTable.status == 'playing')
+              this.switchTableStatus(choosedTable);
+            this.$message({ message: '复制 ' + this.mainSelection.length + ' 条任务成功！', type: 'success' });
+          }, '选择要将这些任务复制到哪个时间表', 'table');
         }
       },
       deleteTask(){
@@ -1495,6 +1640,8 @@ function initVue() {
           type: 'warning'
         }).then(() => {
           this.currentEditTask.parent.tasks.splice(this.currentEditTask.parent.tasks.indexOf(this.currentEditTask), 1);
+          if(this.currentEditTask.parent.status == 'playing')
+            this.switchTableStatus(this.currentEditTask.parent);
           this.currentEditTask = null;
           this.$message({
             type: 'success',
@@ -1504,12 +1651,39 @@ function initVue() {
       },   
       deleteCheckedTask(){
         if(this.mainSelection && this.mainSelection.length > 0){
-          this.$confirm('您真的要删除选中的 ' + this.mainSelection.length + ' 条任务? 注意，此操作不可恢复！', '提示', {
+          this.$confirm('您真的要删除选中的 ' + this.mainSelection.length + ' 条任务? <b class="text-danger">注意，此操作不可恢复！</b>', '提示', {
+            dangerouslyUseHTMLString: true,
             confirmButtonText: '删除',
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            
+            var deleteedTask = 0;
+            var newTasksArr = [];
+            var table = this.currentEditTask.parent;
+            var findTaskInSelection = (tid) => {
+              for (var i = 0, c = this.mainSelection.length; i < c; i++)
+                if(this.mainSelection[i].tid == tid) return true;
+              return false
+            };
+            //重组
+            for (var i = 0, c = table.tasks.length; i < c; i++) {
+              if(findTaskInSelection(this.currentEditTask.parent.tasks[i].tid)) deleteedTask++;
+              else newTasksArr.push(this.currentEditTask.parent.tasks[i]);
+            }
+
+            table.tasks = newTasksArr;
+            if(table == this.currentShowTable){
+              this.currentShowTable = null;
+              this.switchShowCurrentTable(table);
+            }
+
+            //更新时钟
+            if(table.status == 'playing')
+              this.switchTableStatus(table);
+            this.$message({
+              type: 'success',
+              message: '成功删除 ' + deleteedTask + ' 条任务'
+            });
           }).catch(() => {});
         }
       },    
@@ -1522,7 +1696,7 @@ function initVue() {
       },
       editTask(){
         this.currentIsAddTask = false;
-        this.currentEditTaskBackup = this.currentEditTask.clone();
+        this.currentEditTaskBackup = this.currentEditTask.clone(this.currentEditTask.tid);
         this.showEditTaskDialog = true;
       },
       editTaskFinish(save, noCheck){ 
@@ -1562,8 +1736,41 @@ function initVue() {
         this.currentEditTask = null;
         this.currentEditTaskBackup = null;
       },
+
+      chooseTarget(callback, text, type){
+        this.showChooseTargetDialog = true;
+        this.chooseTargetText = text;
+        this.chooseTargetCallback = callback;
+        this.chooseTargetType = type;
+        this.chooseTargetValue = 0;
+      },
+      chooseTargetFinish(save){
+        if(save){
+          if(this.chooseTargetType == 'season'){
+            for (var i = 0, c = this.data.length; i < c; i++) {
+              if(this.data[i].sid == this.chooseTargetValue){
+                if(this.chooseTargetCallback)this.chooseTargetCallback(this.data[i]);
+                break;
+              }
+            }
+          }else if(this.chooseTargetType == 'table'){
+            for (var i = 0, c = this.data.length; i < c; i++) {
+              var season = this.data[i];
+              for (var j = 0, d = season.tables.length; j < d; j++) {
+                var table = season.tables[j];
+                if(table.tid == this.chooseTargetValue){
+                  if(this.chooseTargetCallback)this.chooseTargetCallback(table);
+                  break;
+                }
+              }
+            }
+          }
+        }
+        this.chooseTargetValue = 0;
+        this.showChooseTargetDialog = false;
+      },
       playTaskUser(){
-        this.$confirm('您是否希望立即开始播放此任务? <br>任务名：<span class="text-important">' + this.currentEditTask.name + '</span>', '提示', {
+        this.$confirm('您是否希望立即开始'+(this.currentEditTask.type=='播放音乐'?'播放':'执行')+'此任务? <br>任务名：<span class="text-important">' + this.currentEditTask.name + '</span>', '提示', {
           dangerouslyUseHTMLString: true,
           confirmButtonText: '播放',
           cancelButtonText: '取消',
@@ -1718,6 +1925,7 @@ function initVue() {
         var newMusicItemText = document.createElement('div');
         var newMusicItemSpan = document.createElement('span');
         var newMusicItemProg = document.createElement('div');
+        var newMusicItemProg2 = document.createElement('div');
         var newMusicItemIcon = document.createElement('i');
         var newMusicItemControls = document.createElement('div');
         newMusicItemControls.innerHTML = '<div class="btns"><a onclick="main.playPlayMusic(\'' + mid + '\')" id="music_player_item_' + mid + '_play" title="播放" href="javascript:;"><i class="fa fa-play" aria-hidden="true"></i></a>\
@@ -1732,12 +1940,14 @@ function initVue() {
         newMusicItemAudio.setAttribute('id', id);
         newMusicItemAudio.setAttribute('controls', 'controls');
         newMusicItemText.setAttribute('class', 'text');
+        newMusicItemProg2.setAttribute('class', 'progress-bg');
         newMusicItemProg.setAttribute('class', 'progress');
         parent.appendChild(newMusicItem);
         newMusicItem.appendChild(newMusicItemAudio);
         newMusicItem.appendChild(newMusicItemControls);
         newMusicItem.appendChild(newMusicItemText);
         newMusicItemText.appendChild(newMusicItemIcon);
+        newMusicItemText.appendChild(newMusicItemProg2);
         newMusicItemText.appendChild(newMusicItemProg);
         newMusicItemText.appendChild(newMusicItemSpan);
 
@@ -2101,7 +2311,7 @@ function initVue() {
           forceLoadJsonData();
           return;
         }else{
-          this.$confirm('您是否真的要导入数据 ? 请注意，<span class="text-important">当前软件的数据将会被覆盖！此操作不能还原</span>', '注意', {
+          this.$confirm('您是否真的要导入数据 ? 请注意，<span class="text-danger">当前软件的数据将会被覆盖！此操作不能还原</span>', '注意', {
             dangerouslyUseHTMLString: true,
             confirmButtonText: '删除',
             cancelButtonText: '取消',
@@ -2137,6 +2347,7 @@ function initVue() {
       showHelpWindow(ar) { ipc.send('main-act-show-help-window', ar); },
       executeShutdown(){
         ipc.send('main-act-window-control', 'show');
+        this.showShutdownDialog = true;
         this.log('关机已启动', { modulname: '自动执行器' })
         this.shutdownTimer = setInterval(() => {
           if(this.shutdownTick>1)
@@ -2166,13 +2377,16 @@ function initVue() {
       executeShutdownNow(){
         clearInterval(this.shutdownTimer);
         this.saveSettings();
-        this.saveAllData();
-        ipc.send('main-act-shutdown'); 
+        this.saveAllData(() => {
+          //Send shutdown
+          ipc.send('main-act-shutdown'); 
+        });
       },
       executeRebootNow(){
         this.saveSettings();
-        this.saveAllData();
-        ipc.send('main-act-reboot'); 
+        this.saveAllData(() => {
+          ipc.send('main-act-reboot'); 
+        });
       },
       cancelShutdown(){
         if(this.shutdownTimer){
@@ -2192,15 +2406,13 @@ function initVue() {
           background: 'rgba(255, 255, 255, 0.8)'
         });
         this.stopTimer();
-        this.saveAllData();
-
-        setTimeout(function(){
+        this.saveAllData(function(){
           exitHide(() => {
             loading.close();
             bellsWin32.setPowerStateEnable(false);
             ipc.send('main-act-quit', ''); 
           })
-        }, 1500);
+        });
       },
       getPlayConditionString(playConditions) {
         var str = '';
@@ -2219,14 +2431,7 @@ function initVue() {
         return '';
       },
       getFileName(string){
-        if(string.indexOf('\\')>-1){
-          var i = string.lastIndexOf("\\");
-          return string.slice(i+1);
-        }else if(string.indexOf('/')>-1){
-          var i = string.lastIndexOf("/");
-          return string.slice(i+1);
-        }
-        return string;
+        return Utils.getFileName(string);
       },
       mainTableSort(a, b){
         return a.getPlayConditionString().localeCompare(b.getPlayConditionString(),'zh-CN');
@@ -2257,29 +2462,35 @@ function initVue() {
           setTimeout(() => {$(ele).prop('class', $(ele).prop('data-class'))}, 300);
         }
       },
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.label.indexOf(value) !== -1;
+      },
+      showDbPath(){
+        electron.shell.openExternal(dbPath);
+      },
     },
   });
 
+  var task_area = document.getElementById('task_area');
+
   /*初始化加载*/
   setTimeout(function () {
-    
 
     main.process = process;
     main.log('程序已启动', {modulname:'主程序'})
-    main.loadDisplayTimer();
-    main.loadMenus();
-    main.loadAllData();
-
-    $("#clock").flipcountdown({
-      size: "sm"
-    });
-
-    setTimeout(function () {
-      var task_area = document.getElementById('task_area');
-      if(task_area)  main.mainTableHeight = task_area.offsetHeight - 55;
-    }, 1000)
-
-    setTimeout(function () { hideIntro(); }, 2000);
+    main.initDatabase(() => {
+      main.loadDisplayTimer();
+      main.loadMenus();
+      main.loadAllData(() => {
+        setTimeout(function () { 
+          //启动时钟
+          main.loadTimer();
+          main.loadBaseUI();
+          hideIntro();
+        }, 1000)
+      });
+    })
   }, 700);
 
   //检测用户是否长时间无操作

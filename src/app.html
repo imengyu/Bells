@@ -122,8 +122,13 @@
         <!--时间表区域-->
         <div id="table_area" class="table-area">
           <div v-if="currentShowSeason" style="height: 100%;">
+            <transition v-if="currentShowSeasonLoading" 
+              enter-active-class="animated bounceInRight" leave-active-class="animated bounceOutLeft">
+              <div class="none-area">
+              </div>
+            </transition>
             <!--没有时间表显示-->
-            <transition v-if="!currentShowSeason.tables || currentShowSeason.tables.length == 0" 
+            <transition v-else-if="!currentShowSeason.tables || currentShowSeason.tables.length == 0" 
               enter-active-class="animated bounceInRight" leave-active-class="animated bounceOutLeft">
               <div class="none-area">
                 <label>
@@ -133,7 +138,7 @@
               </div>
             </transition>
             <!--时间表列表-->
-            <transition v-else enter-active-class="animated slideInRight" leave-active-class="animated slideOutLeft">
+            <transition v-else enter-active-class="animated anim-fast slideInRight" leave-active-class="animated anim-fast slideOutLeft">
               <happy-scroll :color="leftAreaScrollColor" size="5" :resize="true" :hide-horizontal="true">
                 <ul class="timetable-area" @mouseenter="leftAreaScrollColor='rgba(0,0,0,0.2)'"
                   @mouseleave="leftAreaScrollColor='rgba(0,0,0,0.05)'">
@@ -213,40 +218,38 @@
                   </el-tooltip>
                 </template>
               </el-table-column>
-              <el-table-column label="名称" show-overflow-tooltip sortable prop="name">
+              <el-table-column label="名称" width="110" show-overflow-tooltip sortable prop="name">
               </el-table-column>
-              <el-table-column label="播放条件" prop="playConditions" sortable :sort-method="mainTableSort" width="120">
+              <el-table-column label="播放条件" prop="playConditions" sortable :sort-method="mainTableSort" width="105">
                 <template slot-scope="scope">
                   <i class="el-icon-time"></i>
                   <span class="ml-2">{{ scope.row.getPlayConditionString() }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="停止条件" sortable :sort-method="mainTableSort" width="120">
-                <template slot-scope="scope">
-                  <i class="el-icon-time"></i>
-                  <span class="ml-2">{{ scope.row.getStopConditionString() }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column label="播放任务" width="140">
+              <el-table-column label="播放任务" show-overflow-tooltip  width="250">
                 <template slot-scope="scope">
                   <el-popover trigger="click" placement="left" :title="scope.row.type">
                     <div v-if="!scope.row.commands || scope.row.commands.length == 0" class="text-secondary text-center">
                       无任务
                     </div>
-                    <div v-else v-for="(item,index) in scope.row.commands" class="play-task-popover-item">
-                      <span>{{ item }}</span>
+                    <div v-else-if="scope.row.type!='关闭计算机'" v-for="(item,index) in scope.row.commands" class="play-task-popover-item">
+                      <span>{{ getFileName(item) }}</span>
                       <a @click="runCommandByUser(item)"
-                        :title="(scope.row.type=='执行命令'||scope.row.type=='关闭计算机')?'执行此命令':'播放音乐'" href="javascript:;">
+                        :title="scope.row.type=='执行命令'?'执行此命令':'播放此音乐'" href="javascript:;">
                         <i class="fa fa-play" aria-hidden="true"></i>
                       </a>
                     </div>
                     <div slot="reference" class="name-wrapper">
+                      
                       <span v-if="scope.row.type=='播放音乐'" title="任务执行：播放音乐，点击查看详细条目" class="task-tag cursor-pointer">
                         <i class="fa fa-music mr-2" aria-hidden="true"></i> {{scope.row.getCommandCount()}} </span>
                       <span v-if="scope.row.type=='执行命令'" title="任务执行：执行命令" class="task-tag cursor-pointer">
                         <i class="fa fa-terminal mr-2" aria-hidden="true"></i> {{scope.row.getCommandCount()}} </span>
-                      <span v-if="scope.row.type=='关闭计算机'" title="关闭计算机，点击查看详细条目" class="task-tag cursor-pointer"><i class="fa fa-power-off"
+                      <span v-if="scope.row.type=='关闭计算机'" title="关闭计算机" class="task-tag shut"><i class="fa fa-power-off"
                           aria-hidden="true"></i></span>
+                      <span v-if="scope.row.type=='关闭计算机'" class="ml-2">执行关闭计算机命令</span>
+                      <span v-else class="ml-2">{{ scope.row.getCommandFastText() }}</span>
+                      <!--<span class="task-tag id" title="条目的 ID">{{scope.row.tid}} </span>-->
                     </div>
                   </el-popover>
                 </template>
@@ -328,6 +331,7 @@
         </div>
         <div id="walkthrough-8">
           <h3>现在，您可以尽情使用了！</h3>
+          <p class="mb-1">软件默认的自动播放数据是示例使用，您需要根据您最近学校的要求来修改</p>
           <p>您还可以在帮助文档中查找更多有关于软件的帮助</p>
           <a href="javascript:;" onclick="main.showHelpWindow('')" style="font-size: 12px">打开帮助文档</a>
         </div>
@@ -352,7 +356,7 @@
         width="50%">
         <el-form v-if="currentEditSeasonBackup" ref="formEditSeason" :model="currentEditSeasonBackup" label-width="80px">
           <el-form-item label="时令名称">
-            <el-input v-model="currentEditSeasonBackup.name" maxlength="6" show-word-limit></el-input>
+            <el-input v-model="currentEditSeasonBackup.name" maxlength="10" show-word-limit></el-input>
           </el-form-item>
           <el-form-item label="时令播放时间">
             <el-tooltip class="item" effect="dark" content="是否不限制时间，如果不限制时间，那么该时令无论何时都会播放" placement="top">
@@ -386,6 +390,7 @@
           <el-form-item label="是否启用">
             <el-switch v-model="currentEditSeasonBackup.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
           </el-form-item>
+          <el-form-item label="ID"><span class="task-tag id" title="条目的 ID">{{ currentEditSeasonBackup.sid }}</span></el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="editSeasonFinish(false)">取消</el-button>
@@ -405,6 +410,12 @@
               <el-radio-button v-for="(t,index) in currentEditConditionAllowTypes" :key="index" :label="t"></el-radio-button>
             </el-radio-group>
             <el-divider></el-divider>
+            <el-tooltip 
+              class="item" effect="dark" placement="right"
+              content="是否反向条件，比如：原来是“在星期三播放”，反向条件后成为“不在星期三才播放”" 
+              v-if="currentEditConditionBackup.type!='时间'">
+              <el-checkbox v-model="currentEditConditionBackup.not">非</el-checkbox>
+            </el-tooltip>
             <div v-if="currentEditConditionBackup.type=='星期'">
               <el-select v-model="currentEditConditionBackup.week" style="width: 100px;" placeholder="请选择">
                 <el-option v-for="item in weekLabels" :key="item.value" :label="item.label" :value="item.value"></el-option>
@@ -435,7 +446,7 @@
 
               <span 
                 v-if="currentEditConditionBackup.weekStart==currentEditConditionBackup.weekEnd" 
-                style="color: #db9411">
+                class="text-warning d-block">
                 <i class="fa fa-exclamation-triangle mr-2"></i> 
                 您设置了两个相同的星期，这意味着该条件永远成立。
               </span>
@@ -461,7 +472,7 @@
 
               <span 
                 v-if="currentEditConditionBackup.dateStart==currentEditConditionBackup.dateEnd" 
-                style="color: #db9411">
+                class="text-warning d-block">
                 <i class="fa fa-exclamation-triangle mr-2"></i> 
                 您设置了两个相同的时间，这意味着该条件永远成立。
               </span>
@@ -495,7 +506,7 @@
         :visible.sync="showEditTableDialog" width="70%">
         <el-form v-if="currentEditTableBackup" ref="formEditTable" :model="currentEditTableBackup" label-width="100px">
           <el-form-item label="时间表名称">
-            <el-input v-model="currentEditTableBackup.name" maxlength="10" show-word-limit></el-input>
+            <el-input v-model="currentEditTableBackup.name" maxlength="30" show-word-limit></el-input>
           </el-form-item>
           <el-form-item label="播放条件">
             使时间表永远处于播放状态：<el-switch v-model="currentEditTableBackup.alwaysPlay" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
@@ -520,6 +531,7 @@
           <el-form-item label="是否启用">
             <el-switch v-model="currentEditTableBackup.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
           </el-form-item>
+          <el-form-item label="ID"><span class="task-tag id" title="条目的 ID">{{ currentEditTableBackup.tid }}</span></el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="editTableFinish(false)">取消</el-button>
@@ -535,7 +547,7 @@
         width="70%">
         <el-form v-if="currentEditTaskBackup" ref="formEditTask" :model="currentEditTaskBackup" label-width="100px">
           <el-form-item label="任务名称">
-            <el-input v-model="currentEditTaskBackup.name" maxlength="10" show-word-limit></el-input>
+            <el-input v-model="currentEditTaskBackup.name" maxlength="30" show-word-limit></el-input>
           </el-form-item>
           <el-form-item label="播放条件">
             <span class="text-secondary el-form-span">任务将会自动根据您设置的条件进行播放，这些条件以<b>“与”</b>的方式进行判断，并且对于任务，必须要有并且只有一个<a href="javascript:;" @click="showHelpWindow('')">精确时间条件</a>才能正常运行。</span>
@@ -574,10 +586,10 @@
               <el-input v-for="(item, index) in currentEditTaskBackup.commands" :key="index" placeholder="请输入音乐文件路径" v-model="currentEditTaskBackup.commands[index]" class="mt-1">
                 <template slot="append">
                   <el-button size="mini" :disabled="index==0" icon="el-icon-top" @click="commandListMoveUp(index, currentEditTaskBackup.commands)" title="上移"></el-button>
-                  <el-button size="mini" :disabled="index==currentEditTaskBackup.commands.length" icon="el-icon-bottom" @click="commanListMoveDown(index, currentEditTaskBackup.commands)" title="下移"></el-button>
+                  <el-button size="mini" :disabled="index==currentEditTaskBackup.commands.length-1" icon="el-icon-bottom" @click="commanListMoveDown(index, currentEditTaskBackup.commands)" title="下移"></el-button>
                   <el-button size="mini" @click="chooseCommandMusicInList(index)">列表中选择</el-button>
                   <el-button size="mini" icon="el-icon-folder" @click="chooseCommandMusic(index, currentEditTaskBackup.commands)" title="选择文件"></el-button>
-                  <el-button type="danger" size="mini" icon="el-icon-delete" title="删除" @click="deleteCommand(index, currentEditTaskBackup.commands)"></el-button>
+                  <el-button size="mini" type="danger" icon="el-icon-delete" title="删除" @click="deleteCommand(index, currentEditTaskBackup.commands)"></el-button>
                 </template>
               </el-input>
               <el-tooltip effect="dark" content="添加音乐" placement="right">
@@ -586,7 +598,7 @@
               <el-divider content-position="left">音乐附加设置</el-divider>
               <el-form v-if="currentEditTaskBackup" ref="formEditTaskMusic" :model="currentEditTaskBackup" label-width="130px">
                 <el-form-item label="音乐循环次数">
-                  <span class="el-form-span">设置此参数以限制此任务的音乐循环播放次数，为 0 或 1 则不循环。</span><br/>
+                  <span class="el-form-span">设置此参数以设置此任务的音乐循环播放次数，为 0 或 1 则不循环。</span><br/>
                   <el-input-number v-model="currentEditTaskBackup.musicLoopCount" size="small" style="width:130px" :min="0" :max="10"></el-input-number>
                 </el-form-item>
                 <el-form-item label="音乐音量" style="height: 76px">
@@ -622,7 +634,7 @@
               <el-input v-for="(item, index) in currentEditTaskBackup.commands" :key="index" placeholder="请输入命令" v-model="currentEditTaskBackup.commands[index]">
                 <template slot="append">
                     <el-button size="mini" :disabled="index==0" icon="el-icon-top" @click="commandListMoveUp(index, currentEditTaskBackup.commands)" title="上移"></el-button>
-                    <el-button size="mini" :disabled="index==currentEditTaskBackup.commands.length" icon="el-icon-bottom" @click="commanListMoveDown(index, currentEditTaskBackup.commands)" title="下移"></el-button>
+                    <el-button size="mini" :disabled="index==currentEditTaskBackup.commands.length-1" icon="el-icon-bottom" @click="commanListMoveDown(index, currentEditTaskBackup.commands)" title="下移"></el-button>
                   <el-button type="danger" size="mini" icon="el-icon-delete" @click="deleteCommand(index, currentEditTaskBackup.commands)" title="删除"></el-button>
                 </template>
               </el-input>
@@ -640,15 +652,54 @@
           <el-form-item label="是否启用">
             <el-switch v-model="currentEditTaskBackup.enabled" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
           </el-form-item>
+          <el-form-item label="ID"><span class="task-tag id" title="条目的 ID">{{ currentEditTaskBackup.tid }}</span></el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="editTaskFinish(false)">取消</el-button>
           <el-button type="primary" @click="editTaskFinish(true)">保存</el-button>
         </span>
       </el-dialog>
+      <!--选择目标对话框-->
+      <el-dialog 
+        title="选择目标" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        :visible.sync="showChooseTargetDialog" 
+        class="choose-target-dialog"
+        width="50%">
+        <span>{{ chooseTargetText }}</span>
+        <ul class="choose-list seasons">
+          <li v-for="(season,index) in data" :key="index">
+            <div class="info">
+              <div class="text">
+                <div class="icon"></div>
+                <h5>{{ season.name }}</h5>
+                <span>{{ season.note }}</span>
+              </div>
+              <el-radio v-if="chooseTargetType=='season'" v-model="chooseTargetValue" :label="season.sid">ID : {{season.sid}}</el-radio>
+            </div>
+            <ul v-if="chooseTargetType=='table'" class="choose-list tables">
+              <li v-for="(table,index2) in season.tables" :key="index2">
+                <div class="info">
+                  <div class="text">
+                    <div class="icon"></div>
+                    <h5>{{ table.name }}</h5>
+                    <span>{{ table.note == '' ? getPlayConditionString(table.playConditions) : table.note }}</span>
+                  </div>
+                  <el-radio v-if="chooseTargetType=='table'" v-model="chooseTargetValue" :label="table.tid">ID : {{table.tid}}</el-radio>
+                </div>
+              </li>
+            </ul>
+          </li>
+        </ul>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="chooseTargetFinish(false)">取消</el-button>
+          <el-button type="primary" @click="chooseTargetFinish(true)">确定</el-button>
+        </span>
+      </el-dialog>
       <!--列表中选择音乐对话框-->
       <el-dialog title="从列表中选择音乐" :visible.sync="showFastAddListMusicDialog" width="40%">
-        <span v-for="(item, index) in musicHistoryList" :key="index" :title="item" class="task-tag cursor-pointer music-item-small" @click="setCommandMusic(chooseMusicCommandIndex,item);showFastAddListMusicDialog=false">{{ item }}</span>
+        <span v-for="(item, index) in musicHistoryList" :key="index" :title="item" class="task-tag cursor-pointer music-item-small mt-1" @click="setCommandMusic(chooseMusicCommandIndex,item);showFastAddListMusicDialog=false">{{ item }}</span>
         <span slot="footer" class="dialog-footer">
           <el-button @click="addMusicsToHistoryList()">添加音乐到此列表</el-button>
           <el-button @click="showFastAddListMusicDialog=false">关闭</el-button>
@@ -658,13 +709,20 @@
       <el-dialog title="关机前准备" 
         :close-on-click-modal="false"
         :close-on-press-escape="false"
+        :show-close="false"
         :visible.sync="showShutdownDialog" 
-        width="40%">
+        width="50%">
+        <svg style="float: left; margin-right: 10px" t="1565850849507" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4417"
+          width="60" height="60">
+          <path
+            d="M512 78.769231C272.541538 78.769231 78.769231 272.541538 78.769231 512s193.772308 433.230769 433.230769 433.230769 433.230769-193.772308 433.230769-433.230769S751.458462 78.769231 512 78.769231z m-47.261538 165.415384c0-25.993846 21.267692-47.261538 47.261538-47.261538s47.261538 21.267692 47.261538 47.261538v279.63077c0 25.993846-21.267692 47.261538-47.261538 47.261538s-47.261538-21.267692-47.261538-47.261538V244.184615z m47.261538 563.2c-163.052308 0-295.384615-132.332308-295.384615-295.384615 0-103.581538 53.169231-194.56 133.907692-247.335385l51.593846 72.467693c-57.895385 36.627692-96.886154 101.218462-96.886154 174.867692 0 113.821538 92.947692 206.769231 206.769231 206.769231s206.769231-92.947692 206.769231-206.769231c0-73.255385-38.596923-137.846154-96.098462-174.473846l51.593846-72.467692C754.215385 317.833846 807.384615 408.812308 807.384615 512c0 163.052308-132.332308 295.384615-295.384615 295.384615z"
+            fill="#FE3D54" p-id="4418"></path>
+        </svg>
         定时关机任务已启动，系统将在 <span class="text-important">{{ shutdownTick }}</span> 秒后关机。<br/>
         在关闭计算机前请保存您的工作，或者您可以选择立即关机/取消关机。
         <span slot="footer" class="dialog-footer">
           <el-button @click="showShutdownDialog=false;executeShutdownNow()">立即关机</el-button>
-          <el-button @click="showShutdownDialog=false;cancelShutdown()">取消关机</el-button>
+          <el-button type="success" @click="showShutdownDialog=false;cancelShutdown()">取消关机</el-button>
         </span>
       </el-dialog>
       <!--设置管理员密码对话框-->
@@ -710,7 +768,7 @@
                 <span class="text-secondary el-form-span">您可以开启此选项阻止系统自动休眠，亦或者在操作系统的“电源选项”中将休眠时间设置为“从不”，来防止计算机自动休眠。<br><a href="javascript:;">了解更多关于阻止休眠的信息</a></span>
               </el-form-item>
               <el-form-item label="开机自动运行本程序">
-                当前开机自动运行状态：<span class="text-important">{{ getAutoStartStatus() }}</span><br>
+                当前开机自动运行状态：<span class="text-important">{{ autoStartStatus }}</span><br>
                 <el-button type="primary" @click="switchAutoStart(true)" round>设置开机启动</el-button>
                 <el-button type="info" @click="switchAutoStart(false)" round>取消开机启动</el-button>
                 <br>
@@ -753,7 +811,7 @@
 
             <h4 class="m-0 mt-3">本软件长时间无操作时自动锁定</h4>
             <el-switch v-model="appSettingsBackup.autoLock" style="margin: 10px 0;"></el-switch>
-            <br/>超时时间：<el-input-number v-model="appSettingsBackup.autoLockMaxMinute" size="small" style="width:90px" controls-position="right" :min="1" :max="60"></el-input-number> 分钟
+            <br/>超时时间：<el-input-number v-model="appSettingsBackup.autoLockMaxMinute" size="small" style="width:90px" controls-position="right" :min="1" :max="60"></el-input-number>&nbsp;分钟
             
             <h4 class="m-0 mt-3">登录界面的说明文字</h4>
             <span class="text-secondary el-form-span">此说明文字将会被显示在登录界面上，您可以告知别人关于登录的信息。</span>
@@ -781,8 +839,9 @@
               v-model="testJSONData">
             </el-input>
             <div class="pt-2">
-              <el-button @click="forceLoadJsonData()">导入数据</el-button>
+              <el-button @click="forceLoadJsonDataUser()">导入数据</el-button>
               <el-button @click="displayJsonData()">导出数据</el-button>
+              <el-button @click="showDbPath()">定位 Database 文件位置</el-button>
             </div>
 
             <el-divider content-position="left"></el-divider>
@@ -972,7 +1031,7 @@
         :visible.sync="musicHistoryListShow"
         size="40%"
         direction="rtl">
-        <div style="padding: 15px">
+        <div style="padding: 15px;height: calc(100% - 30px); overflow-y: scroll;" class="scroll-fix">
           
           <el-tooltip  class="item" effect="dark" content="添加音乐" placement="right">
             <div v-if="musicHistoryList && musicHistoryList.length > 0" class="btn-add round" style="float:right;" @click="addMusicsToHistoryList()"></div>
@@ -1008,24 +1067,35 @@
       border-radius: 20px;
       background-color: #fff;
       box-shadow: rgba(0,0,0,.2) 0px 2px 10px 5px;
+      user-select: none;
+      cursor: move;
     }
   </style>
   <script>
+    /*不允许在浏览器中运行*/
     if(typeof require == 'undefined') {
       window.onload = function(){
         document.getElementById('first-loading').setAttribute('style', 'display:none');
         document.getElementById('main-window').setAttribute('style', '');
+        document.getElementById('intro').setAttribute('style', 'display:none');
         document.getElementById('global-error-info').setAttribute('style', '');
         document.getElementById('global-error-info-text').innerText = '本应用不能在浏览器中运行!';
       }
       throw Error('本应用不能在浏览器中运行! App must run in Electron');
     }
+    
+    /*Load native mode*/
+    const bellsWin32 = require('./app.node')
+    const Datastore = require('nedb');
+    
+    var dbPath = process.cwd() + '/data/data.db';
+    var db = new Datastore({ filename: dbPath });
+    var mainAppRunning = false;
     var main = null;
     var globalTid = 0;
     var globalBid = 0;
     var globalSid = 0;
-    /*Load native mode*/
-    const bellsWin32 = require('./app.node')
+    
   </script>
 </body>
 

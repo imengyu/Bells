@@ -26,14 +26,14 @@
           <li><strong>基本操作</strong></li>
           <li><a href="#base_type" class="cc-active">基本概念</a></li>
           <li><a href="#organize_with_you_need" class="cc-active">根据实际需要进行组织</a></li>
+          <li><a href="#main_appearance" class="cc-active">主界面操作方法</a></li>
           <li><a href="#add_or_edit_season" class="cc-active">添加编辑时令</a></li>
           <li><a href="#add_or_edit_table" class="cc-active">添加编辑时间表</a></li>
           <li><a href="#add_or_edit_condition" class="cc-active">添加编辑播放条件</a></li>
           <li><a href="#add_or_edit_task" class="cc-active">添加编辑任务</a></li>
-          <li><a href="#auto_play_music_task" class="cc-active">自动播放音乐任务</a></li>
-          <li><a href="#ayto_shutdown_task" class="cc-active">定时关机任务</a></li>
           <li><a href="#music_player" class="cc-active">音乐播放器</a></li>
           <li><strong>高级操作</strong></li>
+          <li><a href="#data_security" class="cc-active">数据安全</a></li>
           <li><a href="#import_and_export_data" class="cc-active">导入导出数据</a></li>
           <li><a href="#run_command_or_open_applications" class="cc-active">使用本软件定时运行命令或开启其他软件</a></li>
           <li><strong>其他</strong></li>
@@ -71,7 +71,7 @@
           <ul>
             <li>
               <b>时令</b> :
-              时令是一个根据季节(日期)进行控制的，进行不同时间表的播放，例如，在学校中，
+              时令是一个根据季节(日期)进行控制的，进行不同时间表的播放，它包含了许多个子时间表，例如，在学校中，
               夏天使用一套时间表，冬天使用另外一套时间表（通常称之为“夏令时”、“冬令时”），此时，您就可以使用时令进行控制。
             </li>
             <li>
@@ -85,28 +85,159 @@
             </li>
             <li>
               <b>播放条件</b> :
-              它被加在时间表和任务上，可以是一个时间点，可以是一个日期，通常用来控制时间表或任务在什么时候播放。
+              它被加在时间表或任务上，可以是一个时间点，可以是一个日期，通常用来控制时间表或任务在什么时候，什么条件下播放。
             </li>
           </ul>
 
           <h3 id="organize_with_you_need"> 根据实际需要进行组织</h3>
-          <p></p>
+          <p>通常学校会指定一张作息时间表，要求我们广播工作室按规定播放铃声，如下图（这是作者学校的作息时间表）：</p>
+          <img src="images/table-emple.jpg"/>
+          <p>您可以根据此表格来确定软件数据，告诉软件在什么时间播放什么铃声。
+            以下是如何将纸质表格转为软件播放数据的分析方法 (需要您手动输入数据) ：</p>
+          <ol>
+            <li>首先可以看到有两种时间，一种是春冬，一种是夏秋，所以，我们可以添加两个<b>时令</b>，一个在 5/1-11/3 播放，另一个在 11/4-4/30 播放，这样就可以在规定的日期内播放指定的时令了。</li>
+            <li>在春冬、夏秋时令下添加<b>时间表</b>，春冬时间表内添加具体任务，任务设置<i>春冬</i>的时间；夏秋时间表内添加具体任务，任务设置<i>夏秋</i>的时间。</li>
+            <li>确定您的学校要求播放的铃声，比如上课铃、下课铃等等，并将文件存放在某个不易丢失的位置（或是本软件下musics目录里），稍后使用。</li>
+            <li>根据对应时间，在时间表添加对应任务，比如几点几分播放上课铃，几点几分播放下课铃等等。</li>
+            <li>保存数据，此时软件就开始工作了，将本软件最小化，您可以放心离开。</li>
+          </ol>
+          <p>如此，您便可以使软件按照您的时间表进行定时播放铃声。</p>
+          <img src="images/help-anim-1.gif"/>
+
+          <p>相同的，对于您学校的作息时间表，也可以使用此方法进行分析。</p>
+          <p>下面显示的是具体的软件操作方法：</p>
+
+          <h3 id="main_appearance">主界面操作方法</h3>
+          <img src="images/help-main.jpg"/>
+
           <h3 id="add_or_edit_season">添加编辑时令</h3>
-          <p></p>
+          <img src="images/help-season.jpg"/>
+
+          <p>此对话框用来编辑时令的属性与基本信息。</p>
+          <ul>
+            <li><b>时令播放时间</b>：时令支持自动选择播放，您可以设置一个日期范围来自动控制时令是否播放。</li>
+            <li><b>限制年份</b>：日期范围是否精确限制年份，如果不限年份，那么每年的指定日期都会满足条件。</li>
+            <li><b>不限时间</b>：时令是否永远播放，如果您希望时令永远处于播放状态，可勾选此项。</li>
+            <li><b>是否启用</b>：您可以禁用时令，这样它将不会被自动播放。</li>
+          </ul>
+          
           <h3 id="add_or_edit_table">添加编辑时间表</h3>
-          <p></p>
+          <img src="images/help-table.jpg"/>
+
+          <p>此对话框用来编辑时间表的属性与基本信息。</p>
+          <ul>
+            <li>
+              <b>播放条件</b>播放条件是用来控制时间表的自动播放的。例如，作者的学校在周五会提早放学回家，所以周五
+              下午的铃声时间有所不同，需要一个新的时间表单独在周五播放，即可设置该时间表播放条件为周五。
+              <br/><i>播放条件以 “<b>与</b>” 的方式进行判断，也就是说必须所有条件都满足时间表才会播放。</i>
+              <br/><b>使时间表永远处于播放状态</b>：如果您不希望限制时间表的自动播放，可勾选此项。<br/>
+            </li>
+            <li><b>是否启用</b>：您可以禁用时间表，这样它将不会被自动播放。</li>
+          </ul>
+
           <h3 id="add_or_edit_condition">添加编辑播放条件</h3>
-          <p></p>
+          <img src="images/help-condition.jpg"/>
+          <p>
+            此对话框用来编辑播放条件的属性。<br>
+            播放条件可以来控制 时间表 或 任务 的自动播放，分为 “时间”、“日期”、“星期”、“日期区间”、“星期区间” 5 种类型。<br>
+            <b>非</b>：反向条件，勾选后当前播放条件变成 非满足才成立。<br>
+            <b>是否启用</b>：您可以禁用播放条件，这样此条件不会被计算入结果来控制 时间表 或 任务 。<br>
+            <b>条件类型</b>：
+          </p>
+          <ul>
+            <li>
+              <b>时间</b><br>
+              <img src="images/help-condition-time.jpg" /><br>
+              一个时间点的条件
+            </li>
+            <li>
+              <b>日期</b><br>
+              <img src="images/help-condition-date.jpg" /><br>
+              一个日期点的条件<br>
+            </li>
+            <li>
+              <b>星期</b><br>
+              <img src="images/help-condition-week.jpg" /><br>
+              一个星期点的条件
+            </li>
+            <li>
+              <b>日期区间</b><br>
+              <img src="images/help-condition-date-range.jpg" /><br>
+              从一个时间点至另一个时间点的条件<br>
+              <b>限制年份</b>：日期范围是否精确限制年份，如果不限年份，那么每年的指定日期都会满足条件。
+            </li>
+            <li>
+              <b>星期区间</b><br>
+              <img src="images/help-condition-week-range.jpg" /><br>
+              从星期几至星期几的条件
+            </li>
+          </ul>
+
           <h3 id="add_or_edit_task">添加编辑任务</h3>
-          <p></p>
-          <h3 id="auto_play_music_task">自动播放音乐任务</h3>
-          <p></p>
-          <h3 id="ayto_shutdown_task">定时关机任务</h3>
-          <p></p>
+          <img src="images/help-task.jpg"/>
+          <p>
+            此对话框用来编辑任务的属性。<br>
+            定时任务，可执行 “播放音乐”、“执行命令”、“关闭计算机” 3 种操作。<br>
+            <b>播放条件</b>：计算一些条件，如果条件满足，将会控制任务开始播放。<br>
+            <b>停止条件</b>：计算一些条件，如果条件满足并且任务还未播放完备，将会控制任务停止播放。<br>
+            <i>播放、停止条件以 “<b>与</b>” 的方式进行判断，也就是说必须所有条件都满足才成立。</i>
+            <br/><span style="color: #dd9426">
+              请注意：对于播放条件或停止条件，其中必须要有一个精确的时间条件作为主条件进行判断 (例如 06:00:00) ，否则条件永远不成立。
+            </span><br/>
+            <b>是否启用</b>：您可以禁用任务，这样它将不会被自动播放。<br>      
+            <b>任务操作</b>：
+          </p>
+          
+          <ul>
+            <li>
+              <b>播放音乐</b><br>
+              <img src="images/help-task-music.jpg" /><br>
+              您可以添加多个音乐条目，本软件将会按照顺序进行播放。但必须保证音乐文件存在或可以播放，
+              因为播放错误会导致当前任务终止。<br>
+              <b>本软件支持的音乐</b> :<br>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>WAV</td>
+                    <td>支持</td>
+                  </tr>
+                  <tr>
+                    <td>MP3</td>
+                    <td>支持</td>
+                  </tr>
+                  <tr>
+                    <td>OGG</td>
+                    <td>支持</td>
+                  </tr>
+                </tbody>
+              </table>
+              <b>音乐循环次数</b>：您可以设置此任务的音乐循环播放次数，为 0 次或 1 次不循环，如果此任务有多条音乐，则每条音乐都会循环播放您指定的次数。<br>
+              <b>音乐音量</b>：您可以设置此任务音乐播放的音量，也可以使用默认音量，使用默认音量则以您设置的系统音量为准。<br>
+              <b>音乐限制播放时间</b>：您可以限制播此任务音乐播放的总时间，如果音乐播放时间超过您设定的时间并且音乐还未播放完成，将会强制停止任务和音乐的播放。<br>
+              <b>音乐开始时间</b>：您可以设置此任务音乐开始播放的位置，但仅仅在本任务只有一个音乐时才有效。<br>
+            </li>
+            <li>
+              <b>执行命令</b><br>
+              <img src="images/help-task-command.jpg" /><br>
+              本软件可根据您输入的命令来执行其他程序，您输入的命令将会由 CMD 按顺序执行，因此要求您事先测试，保证命令正确。<br>
+              您还可以启动 按键精灵 的命令脚本，来实现自动定时控制其他程序 <a href="#run_command_or_open_applications">了解更多</a>。
+            </li>
+            <li>
+              <b>关闭计算机</b><br>
+              此任务执行关闭计算机的任务。
+            </li>
+          </ul>
+
           <h3 id="music_player">音乐播放器</h3>
-          <p></p>
+          <img src="images/help-player.jpg" /><br>
+          <p>在有音乐播放时，界面右下角会出现一个音乐条，您可以点击进行音乐播放控制，也可以点击右边按钮隐藏播放控件。</p>
+          <img src="images/help-player2.jpg" /><br>
+          <p>您可以点击音乐条控制此音乐的播放，与普通播放器无异。</p>
 
           <h2 style="margin-top: 30px">高级操作</h2>
+
+          <h3 id="data_security">数据安全</h3>
+          <p></p>
 
           <h3 id="import_and_export_data">导入导出数据</h3>
           <p></p>
@@ -120,17 +251,21 @@
           <h3 id="other_information">其他说明</h3>
           <p></p>
 
+          <div style="padding: 50px 0;text-align: center">
+            THE END
+          </div>
         </div>
-      </div>
+      </div> 
     </section>
     <footer>
-      <div class="">
+      <div style="padding: 50px 0" class="">
         <p> &copy; Copyright 梦欤. All Rights Reserved</p>
       </div>
     </footer>
   </div>
   <script src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/prettify/prettify.js"></script>
+  <script type="text/javascript" src="js/BigPicture.min.js"></script>
   <script>
     /*Add right menu for electron */
     var menuCopy = null;
@@ -152,6 +287,16 @@
         menuCopy.popup(remote.getCurrentWindow());
       }
     }, false);
+    window.addEventListener('load', function () {
+      $(".docs-content img").each(function(index, element) {
+        $(this).click(function(){
+          BigPicture({
+            el: $(this)[0],
+            imgSrc: $(this).attr('src')
+          });
+        });
+      });
+    })
   </script>
   <script src="js/layout.js"></script>
 </body>

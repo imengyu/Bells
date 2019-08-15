@@ -11,6 +11,7 @@ export default {
   isBase64,
   isNumber,
   getFileSuffix,
+  getFileName,
   isEleEditable,
 }
 
@@ -162,9 +163,20 @@ function isNumber(val) {
     return false;
   }
 }
+
 function getFileSuffix(filename){
   var index = filename.lastIndexOf(".");
   return filename.substr(index+1);
+}
+function getFileName(string){
+  if(string.indexOf('\\')>-1){
+    var i = string.lastIndexOf("\\");
+    return string.slice(i+1);
+  }else if(string.indexOf('/')>-1){
+    var i = string.lastIndexOf("/");
+    return string.slice(i+1);
+  }
+  return string;
 }
 
 /**
